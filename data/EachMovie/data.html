@@ -1,0 +1,199 @@
+<!DOCTYPE HTML PUBLIC "-//Netscape Comm. Corp.//DTD HTML//EN">
+<HTML>
+
+<HEAD>
+<TITLE>EachMovie collaborative filtering data set</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#ffffff"
+      LINK="#0000ff" VLINK="#0000ff" ALINK="#0000ff"
+      TEXT="#000000">
+
+<TABLE>
+<TR><TD><IMG SRC="eachmovie.gif" ALT="[EachMovie]" ALIGN=LEFT>
+</TABLE>
+
+<H1>EachMovie collaborative filtering data set</H1>
+
+<H2>Contents</H2>
+<UL>
+<LI> <A HREF="#intro">Introduction</A>
+<LI> <A HREF="#terms">Terms of usage</A>
+<LI> <A HREF="#schema">Schema</A>
+<LI> <A HREF="#obtaining">Obtaining the data set</A>
+</UL>
+
+<A NAME="what"></A>
+<H2>Introduction</H2>
+
+<P> The <A HREF="http://www.digital.com/">DEC</A>
+    <A HREF="http://www.research.digital.com/SRC/"> 
+       Systems Research Center</A>
+    ran the EachMovie recommendation service for 18 months to
+    experiment with a collaborative filtering algorithm.  During that
+    time, some 72916 users entered a total of 2811983 numeric ratings
+    for 1628 different movies (films and videos).  We are making this
+    preference data set available, with all user identification
+    removed, so that other collaborative filtering researchers can use
+    it to test their algorithms.
+
+
+<A NAME="terms"></A>
+<H2>Terms of usage</H2>
+
+<BLOCKQUOTE>
+
+<P>Copyright &copy; Digital Equipment Corporation 1997.
+
+<P> The preference data set was compiled by Digital Equipment
+    Corporation using our collaborative filtering technology.  Digital
+    is making the data set available for use under the terms that
+    apply to this Digital web site (see
+    <A HREF="http://www.digital.com/info/tm.html">Legal</A>) including
+    the following terms:
+
+<P> 1. All information is provided "AS IS".  Digital makes no
+       warranties or representations with respect to the completeness
+       or accuracy of the information or otherwise.  DIGITAL DISCLAIMS
+       ALL WARRANTIES WITH REGARD TO THE INFORMATION, INCLUDING ANY
+       IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+       PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+
+<P> 2. In no event shall Digital be liable for damages, and in
+       particular Digital shall not be liable for special, indirect,
+       consequential, or incidental damages, or damages for lost
+       profits, loss of revenue, or loss of use, arising out of or
+       related to the information or the use or dissemination thereof,
+       whether such damages arise in contract, negligence, tort, under
+       statute, in equity, at law or otherwise.
+
+<P> 3. The user may use the information only for research purposes
+       which are non-commercial and non-revenue bearing.  Any
+       published research results or other publications resulting from
+       use of the information shall credit Digital Equipment
+       Corporation as the provider of the data.  The user agrees to
+       provide Digital with a copy of any such publication using any
+       of the contact names provided at this web site. The user may
+       make copies of the data set as needed for internal use only for
+       the preceding purposes.  All such copies shall duplicate
+       Digital's copyright notice and this notice.
+
+</BLOCKQUOTE>
+
+<A NAME="schema"></A>
+<H2>Schema</H2>
+
+<P> The data set is available as eachmoviedata.tar.gz (zipped
+    tab-separated-value text files, 17632000 bytes compressed).  There
+    are three tables, one per file:
+
+<UL>
+
+<LI> Person (person.txt) provides optional, unaudited demographic data
+     supplied by each person:
+
+     <UL>
+     <LI> ID: Number -- primary key
+     <LI> Age: Number
+     <LI> Gender: Text -- one of "M", "F"
+     <LI> Zip_Code: Text
+     </UL>
+<P>
+<LI> Movie (movie.txt) provides descriptive information about each movie:
+
+     <UL>
+     <LI> ID: Number -- primary key
+     <LI> Name: Text
+     <LI> PR_URL: Text -- URL of studio PR site
+     <LI> IMDb_URL: Text -- URL of Internet Movie Database entry
+     <LI> Theater_Status: Text -- either "old" or "current"
+     <LI> Theater_Release: Date/Time
+     <LI> Video_Status: Text -- either "old" or "current"
+     <LI> Video_Release: Date/Time
+     <LI> Action, Animation, Art_Foreign, Classic, Comedy, Drama, Family,
+          Horror, Romance, Thriller: Yes/No
+     </UL>
+
+     <P> IMDb URLs are provided by courtesy of
+         <A HREF="http://www.imdb.com/">Internet Movie Database</A>.
+
+     <P> The theater and video status and release dates were
+         (approximately) correct in the San Francisco bay area as of
+         September 15, 1997, when EachMovie was terminated.
+
+<P>
+<LI> Vote (vote.txt) is the actual rating data:
+
+     <UL>
+     <LI> Person_ID: Number
+     <LI> Movie_ID: Number
+     <LI> Score: Number -- 0 &lt;= Score &lt;= 1
+     <LI> Weight: Number -- 0 &lt; Weight &lt;= 1
+     <LI> Modified: Date/Time
+     </UL>
+
+     <P> The Score corresponds maps linearly to the zero-to-five star
+         rating used externally on EachMovie.
+     
+     Here's a histogram of the Score values:
+
+     <PRE>
+     Score   Count
+     0	     347191
+     0.2     150495
+     0.4     339718
+     0.6     701236
+     0.8     761676
+     1.0     511667
+     </PRE>
+
+     <P> Weight indicates whether the person rated a movie as zero to
+         five stars (weight = 1) or "sounds awful" (weight &lt; 1).
+         (Most "sounds awful" weights are 0.2, but for historical
+         reasons about 10% are 0.5.)
+
+     <P> Given our site design, there is no way to know whether the
+         person had seen the movie in a theater or on video.
+
+</UL>
+
+<A NAME="obtaining"></A>
+<H2>Obtaining the data set</H2>
+
+<P> If you have read the terms above, and agree to them, contact
+
+<BLOCKQUOTE>
+  Paul McJones<BR>
+  <A HREF="mailto:mcjones@pa.dec.com">&lt;mcjones@pa.dec.com&gt;</A><BR>
+  1 650 853-2255<BR>
+  DEC Systems Research Center<BR>
+  130 Lytton Avenue<BR>
+  Palo Alto, CA 94301<BR>
+</BLOCKQUOTE>
+
+<P> by telephone or email.  He will give you a password for
+    downloading the <A HREF="data/">data</A>.  You may also send
+    copies of your publications involving this data (see term 3 above)
+    to Paul.
+
+<HR>
+
+<CENTER>
+<A HREF="http://www.digital.com/info/tm.html">Legal</A>
+</CENTER>
+
+<HR>
+
+<font size="-1">
+<A HREF="http://www.digital.com"><BR>
+<IMG SRC="dig_logo.gif" BORDER=0 ALT="Digital"></A>
+<br><br>
+Developed by Digital Equipment Corporation.<br>
+Copyright &copy; Digital Equipment Corporation, 1997.<br>
+The DIGITAL logo is a trademark of Digital Equipment Corporation.<br>
+All other trademarks are the property of their respective owners.
+</font>
+
+</BODY>
+
+</HTML>

@@ -13,12 +13,87 @@ try:
 except:
     print("This implementation requires the numpy module.")
     exit(0)
-
-import cvxopt
-from cvxopt import matrix
+try:
+    import codecs
+except:
+    print("This implementation requires the codecs module.")
+    exit(0)
+try:
+    import cvxopt
+    from cvxopt import matrix
+except:
+    print("This implementation requires the cvxopt module.")
+    exit(0)
 
 
 ###############################################################################
+
+
+
+"""
+補助評価値行列の生成
+@INPUT:
+    input_path
+@OUTPUT:
+    Xaux : a auxiliary matrix of dimension 500 x 300
+"""
+def getAuxiliaryMatrix(input_path):
+    movieLensXaux500x300 = list()
+    # MovieLensユーザデータ読み込み
+    i = 0   # インデックス用変数
+    for line in codecs.open(input_path, 'r', 'utf-8'):
+        # ,でスプリット
+        # [0]：UserID
+        # [1]：ItemID
+        # [2]：Rating
+        # [3]：Timestamp
+        line_split = line.split(",")
+        movieLensXaux500x300.insert(i, (line_split[0],line_split[1],line_split[2],line_split[3].rstrip("\n")))
+
+    # ユーザIDの対応表
+    movieLensXaux500x300user = list()
+    # MovieLensユーザデータ読み込み
+    i = 0   # インデックス用変数
+    for line in codecs.open("../data/movieLensXaux500x300user.csv", 'r', 'utf-8'):
+        # [0]：UserID
+        if i == 0:
+            movieLensXaux500x300user.insert(i, (i,line.rstrip("\n")))
+            i = i + 1
+        else:
+            if movieLensXaux500x300user[i-1][1] != line.rstrip("\n"):
+                movieLensXaux500x300user.insert(i, (i,line.rstrip("\n")))
+                i = i + 1
+
+    # アイテムIDの対応表
+    movieLensXaux500x300item = list()
+    # MovieLensユーザデータ読み込み
+    i = 0   # インデックス用変数
+    for line in codecs.open("../data/movieLensXaux500x300item.csv", 'r', 'utf-8'):
+        # [0]：UserID
+        if i == 0:
+            movieLensXaux500x300item.insert(i, (i,line.rstrip("\n")))
+            i = i + 1
+        else:
+            if movieLensXaux500x300item[i-1][1] != line.rstrip("\n"):
+                movieLensXaux500x300item.insert(i, (i,line.rstrip("\n")))
+                i = i + 1
+
+    # print(movieLensXaux500x300item)
+
+
+    auxiliaryMatrix = np.zeros([500,296])    # 0で補助評価値行列を初期化
+    # 補助評価値行列の生成
+    for i in range(len(movieLensXaux500x300)):
+        for j in range(len(movieLensXaux500x300user)):
+            if int(movieLensXaux500x300[i][0]) == movieLensXaux500x300user[j][1]:
+                break
+        for k in range(len(movieLensXaux500x300item)):
+            if int(movieLensXaux500x300[i][1]) == movieLensXaux500x300item[k][1]:
+                break
+            auxiliaryMatrix[int(movieLensXaux500x300user[j][0])][int(movieLensXaux500x300item[k][0])] = movieLensXaux500x300[i][2]
+
+    print(auxiliaryMatrix)
+    return auxiliaryMatrix
 
 """
 アイテム間類似度計算を行う
@@ -109,11 +184,302 @@ def getTransition(W):
                 P[i][j] = W[i][j]/sum(W[i,:])
     return P
 
+"""
+ユーザプロファイルをyLとyUに並べ替える
+@INPUT:
+    y : an user profile vector of dimension 1 x M
+@OUTPUT:
+    yL : an user profile for rated items of dimension 1 x K
+    yU : an user profile for unrated items of dimension 1 x (M-K)
+    yIndex : an user profile index for yL + yU of dimension 1 x M
+"""
+def replaceUserProfile(y,flag):
+    global K_index
+    global U_index
+    global yL
+    global yU
+    global yIndex
+    K = 0   # ユーザの評価してるアイテム数
+    U = 0   # ユーザが評価してないアイテム数
 
-# # アイテムアイテム相関グラフの可視化
-# def itemItemCorrelationGraphConstruction():
-#
-#     return
+    # 初期化判定用フラグ
+    K_flag = False
+    U_flag = False
+    for i in range(len(y)):
+        if 0 != y[i]:   # rated itemの処理
+            if(K_flag != True): # 1個目
+                K_index = np.array(i)   # rated itemのインデックスを保持
+                K_flag = True
+                yL = np.array(y[i])
+            else:
+                K_index = np.append(K_index, i)
+                yL = np.append(yL, y[i])
+            K += 1
+        else:   # unrated itemの処理
+            if(U_flag != True): # 1個目
+                U_index = np.array(i)   # unrated itemのインデックスを保持
+                U_flag = True
+                yU = np.array(y[i])
+            else:
+                U_index = np.append(U_index, i)
+                yU = np.append(yU, y[i])
+            U += 1
+
+    if flag == 1:
+        return (K_index, U_index)
+    else:
+        yIndex = np.zeros([1,K+U])   # アイテムのインデックス格納用
+        # print("yIndex=",yIndex)
+        # print("K_index=",K_index)
+        for i in range(len(y)):
+            if i < K:
+                yIndex[0][i] = K_index[i]
+            else:
+                if U != 1:    # アイテムが1つだけのときの処理
+                    yIndex[0][i] = U_index[i-K]
+                else:
+                    yIndex[0][i] = U_index
+
+        return (yL, yU, yIndex)
+
+"""
+ワンステップ遷移確率行列の置き換えを行う
+@INPUT:
+    P : a transition matrix of dimension M x M
+@OUTPUT:
+    Prep : a replaced transition matrix of dimension M x M
+"""
+def replaceTransition(P, y):
+    # K_index:評価済みアイテムのインデックス
+    # U_index:未評価のアイテムのインデックス
+    K_index, U_index = replaceUserProfile(y,1)
+    K = len(K_index)
+
+    # print("K_index = ",K_index)
+    # print("U_index = ", U_index)
+    # print("K = ",K)
+    # print("U = ",U)
+
+    # 代入処理
+    tempPrep = np.zeros((len(P), len(P[0])))    # 行列の初期化
+    for i in range(len(P)):
+        for j in range(len(P[i])):
+            if y[i] != 0:   # [I O]の代入
+                if i == j:
+                    tempPrep[i][j] = 1
+                else:
+                    tempPrep[i][j] = 0
+            else:       # 式(3)の代入
+                tempPrep[i][j] = P[i][j]
+
+    # print(tempPrep)
+
+    Prep = np.zeros((len(P), len(P[0])))    # 行列の初期化
+    # 並べ替え処理
+    # 行について
+    for i in range(len(Prep)):
+        if i < K:
+            Prep[i,:] = tempPrep[K_index[i],:]
+        else:
+            try:
+                Prep[i,:] = tempPrep[U_index[i - K],:]
+            except:
+                Prep[i,:] = tempPrep[U_index,:]
+    # print("行入れ替えtempPrep")
+    # print(Prep)
+    tempPrep = Prep.copy()  # 深いコピー
+    # 列について
+    for j in range(len(Prep[0])):
+        # print("j = ", j)
+        if j < K:
+            # print("K_index[j]=",K_index[j])
+            Prep[:,j] = tempPrep[:,K_index[j]]
+        else:
+            try:
+                Prep[:,j] = tempPrep[:,U_index[j - K]]
+                # print("U_index[j]=",U_index[j-K])
+                # print("tempPrep[:,U_index[j - K]] = ",tempPrep[:,U_index[j - K]])
+            except:
+                Prep[:,j] = tempPrep[:,U_index]
+                # print("U_index[j]=",U_index)
+                # print("tempPrep[:,U_index[j - K]] = ",tempPrep[:,U_index])
+        # print(Prep)
+
+    return Prep
+
+
+"""
+最適化問題を解いて，各ユーザのノイズを示すスラック変数ξの値を返す
+ξの要素数は評価を付けたアイテム数K
+@INPUT:
+    Prep : a replaced transition matrix of dimension M x M
+    userplofile : an user profile vector of dimension 1 x M
+    L : the Laplacian matrix of G
+@OUTPUT:
+    Xi : the optimal slack variables of dimension K x 1
+"""
+def calculateOptimizationProblem(Prep, userplofile, L):
+    print("最適化ステップ")
+    # 変数の初期化
+    IO = RQ = 0
+    Xi = I = O = R = Q = 0
+    flag = False
+    M = len(Prep)   # 行列のサイズ
+
+    # ユーザプロファイルを分割してyLとyUを取得
+    yL, yU, yIndex = replaceUserProfile(userplofile,0)
+    # print("userplofile = ",userplofile)   # 元のユーザプロファイル
+    # print("yL = ",yL) # ユーザが付けた評価値
+    # print("yU = ",yU) # 未評価（0）
+    # print("yIndex = ",yIndex) # yL→yUの順に並べ替えたユーザプロファイル(インデックス)
+    temp = yL.copy()
+    yL = np.zeros([1,len(temp)])
+    for i in range(len(temp)):
+        yL[0][i] = temp[i]
+
+
+
+    # PrepのI，O，R，Qへの分割処理
+    for i in range(M):
+        if Prep[i][i] != 1: # 一部を評価していた場合
+            I = np.identity(i)    # 単位行列Iの初期化
+            O = np.zeros([i,M-i]) # ゼロ行列Oの初期化
+            R = np.zeros([M-i,i]) # 1ステップ遷移確率行列の初期化from an unrated item to a rated item
+            Q = np.zeros([M-i,M-i]) # 1ステップ遷移確率行列の初期化from an unrated item to an unrated item
+            RQ = np.zeros([M-i,M])
+            break
+        else:   # 全て評価していた場合
+            if i == (M-1):
+                i = i + 1
+                I = np.identity(i)    # 単位行列Iの初期化
+                O = np.zeros([i,M-i]) # ゼロ行列Oの初期化
+                R = np.zeros([M-i,i]) # 1ステップ遷移確率行列の初期化from an unrated item to a rated item
+                Q = np.zeros([M-i,M-i]) # 1ステップ遷移確率行列の初期化from an unrated item to an unrated item
+                RQ = np.zeros([M-i,M])
+                flag = True
+
+    K = len(I)  # 単位行列Iのサイズ
+
+    # print("flag = ",flag)
+
+    # [R Q]の代入とRとQへの分割処理
+    if flag == False:
+        for i in range(M-K):    # RQの代入
+            RQ[i,:] = Prep[i+K,:]
+        for i in range(M):
+            if i < K:
+                R[:,i] = RQ[:,i]    # Rへの分割
+            else:
+                Q[:,i-K] = RQ[:,i]  # Qへの分割
+
+    # # 確認用
+    # print("RQ =")
+    # print(RQ)
+    # print("I =")
+    # print(I)
+    # print("O =")
+    # print(O)
+    # print("R =")
+    # print(R)
+    # print("Q =")
+    # print(Q)
+
+
+    # AとBの初期化
+    A = np.zeros([M,K])
+    B = np.zeros([M,1])
+    IQinvR = np.linalg.inv(np.identity(M-K)-Q).dot(R)
+    IQinvRyL = np.linalg.inv(np.identity(M-K)-Q).dot(R).dot(yL.T)
+    # print("IQinvR =",IQinvR)
+    # print("yL =",yL)
+    # print("IQinvRyL =",IQinvRyL)
+    for i in range(M):
+        if i < K:
+            A[i,:] = I[i,:]
+            # if 0 == len(yL):
+            #     B[i,:] = yL
+            # else:
+            #     B[i,:] = yL[i,:]
+            B[i][0] = yL[0][i]
+        else:
+            A[i,:] = IQinvR[i-K,:]
+            if 1 == len(IQinvRyL):
+                B[i][0] = IQinvRyL
+            else:
+                B[i][0] = IQinvRyL[i-K][0]
+    # print("A = ")
+    # print(A)
+    # print("B = ")
+    # print(B)
+
+    val_lambda = 100
+    Rmin = 1
+    Rmax = 5
+    optP = (A.T).dot(L).dot(A)+val_lambda*I
+    optq = (A.T).dot(L.dot(B))
+    optA = np.ones([1,K])
+    optb = np.zeros([1,1])
+    optG = np.zeros([2*K,K])
+    opth = np.zeros([2*K,1])
+    for i in range(2*K):
+        if i < K:
+            optG[i,:] = -1
+            opth[i][0] = yL.T[i] - Rmin
+        else:
+            optG[i,:] = 1
+            opth[i][0] = Rmax - yL.T[i - K]
+
+    # print("optP =")
+    # print(optP)
+    # print("optq =")
+    # print(optq)
+    # print("optA = ")
+    # print(optA)
+    # print(opth)
+    # print(optG)
+
+    # cvxoptの独自matrixクラス
+    cvxoptP = matrix(optP)
+    cvxoptq = matrix(optq)
+    cvxoptG = matrix(optG)
+    cvxopth = matrix(opth)
+    cvxoptA = matrix(optA)
+    cvxoptb = matrix(optb)
+
+    sol = cvxopt.solvers.qp(cvxoptP,cvxoptq,cvxoptG,cvxopth,cvxoptA,cvxoptb)
+    print(sol["x"])
+    # print(sol["primal objective"])
+    Xi = sol["x"]
+    return Xi
+
+"""
+ユーザプロファイルの平均ノイズの計算を行う
+@INPUT:
+    Xi : the optimal slack variables of dimension K x 1
+@OUTPUT:
+    rho : the average noise in the test user profile
+"""
+def getAverageNoise(Xi):
+    sumXi = 0
+    for i in range(len(Xi)):
+        sumXi = sumXi + abs(Xi[i])
+    rho = sumXi/len(Xi)
+    return rho
+
+"""
+ユーザプロファイルがNNMUか判定する
+@INPUT:
+    rho : the average noise in the test user profile
+    threshold : threshold for NNMU detection
+@OUTPUT:
+    True or False
+"""
+def detectNNMU(rho, threshold):
+    if rho > threshold:
+        return True
+    else:
+        return False
+
 
 
 ###############################################################################
@@ -126,49 +492,51 @@ if __name__ == "__main__":
     # N = [[3.0, 3.5, 4.0]]
     # print(adjusted_cosine(X, Y, N))
 
-    N = int(4)
-    M = int(4)
-    Xaux = np.zeros((N, M))    # N*M行列の初期化
+
+    N = int(300)
+    M = int(500)
+    Xaux = np.zeros([N, M])    # N*M行列の初期化
     # Xaux = np.random.rand(N,M)
-    Xaux = np.array([[3.0, 5.0, 1.0, 0.0], [0.0, 2.0, 4.0, 0.0], [0.0, 1.0, 0.0, 2.0], [3.0, 4.0, 5.0, 2.0]])
-    print("Xaux = ")
-    print(Xaux)
+    # Xaux = np.array([[3.0, 5.0, 1.0, 0.0], [0.0, 2.0, 4.0, 0.0], [0.0, 1.0, 0.0, 2.0], [3.0, 4.0, 5.0, 2.0]])
+    Xaux = getAuxiliaryMatrix('../data/movieLensXaux500x300.csv')
+    
+    # Xaux = getAuxiliaryMatrix('../data/exp2/movieLensUserItemCount300.csv')   # 実験2
 
     similarityMatrix = getItemItemSimilarity(Xaux)
-    print("similarityMatrix = ")
-    print(similarityMatrix)
+    # print("similarityMatrix = ")
+    # print(similarityMatrix)
 
     W = getWeight(similarityMatrix)
-    print("W = ")
-    print(W)
-    P = getTransition(W)
-    print("P = ")
-    print(P)
+    # print("W = ")
+    # print(W)
 
-    D = np.zeros((M,M))
+    P = getTransition(W)
+    # print("P = ")
+    # print(P)
+
+    D = np.zeros([M,M])
     for i in range(M):
         for j in range(M):
             if i == j:
                 D[i][j] = sum(W[i,:])
-    print("D = ")
-    print(D)
-    invD = np.linalg.inv(D)
-    print("invD = ")
-    print(invD)
-    print("invDxW = ")
-    print(invD.dot(W))
-    print()
+    # print("D = ")
+    # print(D)
 
-    # """
-    # 最適化問題サンプル
-    # """
-    # P=matrix(np.diag([1.0,0.0]))
-    # q=matrix(np.array([3.0,4.0]))
-    # G=matrix(np.array([[-1.0,0.0],[0,-1.0],[-1.0,-3.0],[2.0,5.0],[3.0,4.0]]))
-    # h=matrix(np.array([0.0,0.0,-15.0,100.0,80.0]))
-    #
-    # sol=cvxopt.solvers.qp(P,q,G,h)
-    #
-    # print(sol)
-    # print(sol["x"])
-    # print(sol["primal objective"])
+    L = D - W
+    # print("L = ")
+    # print(L)
+
+    # print(Xaux[0,:])
+    for i in range(N):
+        Prep = replaceTransition(P, Xaux[i,:])
+        # print("Prep",i,"= ")
+        # print(Prep)
+        Xi = calculateOptimizationProblem(Prep, Xaux[i,:],L)
+        rho = getAverageNoise(Xi)
+        nnmuFlag = detectNNMU(rho,threshold=0.3)
+        # print("Xi = ", Xi)
+        # print("rho = ",rho)
+        if nnmuFlag == True:
+            print("No.",i,"user is NNMU.")
+        else:
+            print("No.",i,"user is not NNMU.")
