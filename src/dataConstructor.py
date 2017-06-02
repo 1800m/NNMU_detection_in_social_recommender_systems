@@ -9,6 +9,7 @@
 
 import codecs
 import numpy as np
+import sqlite3
 
 class DataConstructor:
     """
@@ -525,6 +526,7 @@ def getMLUserData300ForExp1():
 
 """
 実験1の補助評価値行列用のcsv出力
+movieLensUserData500x300.csv
 """
 def getAuxiliaryMatrixDataForExp1():
     movieLensUserCountAlldown = list()   # 評価しているユーザ情報の保持
@@ -541,7 +543,7 @@ def getAuxiliaryMatrixDataForExp1():
 
     movieLensUserData300 = list()   # 共通アイテム300を評価しているユーザ情報の保持
     # 上位300の共通アイテムを評価しているユーザ情報の読み込み
-    input_path = '../data/exp1/movieLensUserData300.csv'
+    input_path = '../data/exp1/movieLensUserData300down.csv'
     index = 0   # インデックス用変数
     for line in codecs.open(input_path, 'r', 'utf-8'):
         # ,でスプリット
@@ -553,28 +555,53 @@ def getAuxiliaryMatrixDataForExp1():
         movieLensUserData300.insert(index, (line_split[0],line_split[1],line_split[2],line_split[3].rstrip("\n")))
         index = index + 1
 
+    # 評価数が上位500人分格納
+    user500 = np.zeros(500) # 500人分のID保存
+    index = 0
+    for i in range(len(movieLensUserCountAlldown)):
+        flag = False
+        for j in range(len(user500)):
+            if user500[j] != 0:
+                if user500[j] == movieLensUserCountAlldown[i][0]:
+                    flag = True
+                    break
+            else:
+                break
+        if flag == False:
+            user500[index] = movieLensUserCountAlldown[i][0]
+            index = index + 1
+        if index == 500:    # 500人格納済み
+            break
+
+    # movieLensUser500の出力
+    output_path = "../data/exp1/movieLensUser500.csv"
+    for i in range(len(user500)):
+        out_data = int(user500[i])
+        if(i == 0): # 1行目書き込み
+            f = open(output_path, "w")
+            i += 1
+            print(out_data, end="\n", file=f)
+        else:       # 2行目以降の追記
+            f = open(output_path, "a")
+            print(out_data, end="\n", file=f)
+
+
     # 共通アイテム300を含むMovieLensのユーザを500人抜き出す
     # 評価回数が多い順に見ていく
-    # movieLensUserData300
+    # movieLensUserData300[i]
     # [0]：UserID
     # [1]：ItemID
     # [2]：Rating
     # [3]：Timestamp
     index = 0
     counter = 0 # 挿入が行われない回数を保持
-    user500 = list() # 500人区切り用
     movieLensUserData500x300 = list()   # 500人分の保持
     for i in range(len(movieLensUserData300)):
-        flag = False
-        for j in range(500):    # 上位500人分まわす
-            if movieLensUserData300[i][0] == movieLensUserCountAlldown[j][0]: # ユーザIDの一致判定
+        for j in range(len(user500)):    # 上位500人分まわす
+            if movieLensUserData300[i][0] == user500[j]: # ユーザIDの一致判定
                 movieLensUserData500x300.insert(index,movieLensUserData300[i])
                 index = index + 1
-                flag = True
                 break
-        if flag == False:
-            counter = counter + 1
-    print(counter,"分数が足りないよ")
 
 
     # print(movieLensUserData500x300)

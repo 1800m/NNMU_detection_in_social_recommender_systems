@@ -24,7 +24,7 @@ try:
 except:
     print("This implementation requires the cvxopt module.")
     exit(0)
-
+import pdb
 
 ###############################################################################
 
@@ -32,68 +32,150 @@ except:
 
 """
 補助評価値行列の生成
+ユーザIDに関して降順
 @INPUT:
     input_path
 @OUTPUT:
     Xaux : a auxiliary matrix of dimension 500 x 300
 """
 def getAuxiliaryMatrix(input_path):
+    # movieLensXaux500x300 = list()
+    # # MovieLensユーザデータ読み込み
+    # index = 0   # インデックス用変数
+    # for line in codecs.open(input_path, 'r', 'utf-8'):
+    #     # ,でスプリット
+    #     # [0]：UserID
+    #     # [1]：ItemID
+    #     # [2]：Rating
+    #     # [3]：Timestamp
+    #     line_split = line.split(",")
+    #     movieLensXaux500x300.insert(index, (line_split[0],line_split[1],line_split[2],line_split[3].rstrip("\n")))
+    #     index = index + 1
+    #
+    # # ユーザIDの対応表
+    # movieLensXaux500x300user = list()
+    # # MovieLensユーザデータ読み込み
+    # index = 0   # インデックス用変数
+    # for line in codecs.open("../data/exp1/movieLensUser500.csv", 'r', 'utf-8'):
+    #     # [0]：UserID
+    #     if index == 0:
+    #         movieLensXaux500x300user.insert(index, (index,line.rstrip("\n")))
+    #         index = index + 1
+    #     else:
+    #         if movieLensXaux500x300user[index-1][1] != line.rstrip("\n"):
+    #             movieLensXaux500x300user.insert(index, (index,line.rstrip("\n")))
+    #             index = index + 1
+    # # アイテムIDの対応表
+    # movieLensXaux500x300item = list()
+    # # MovieLensユーザデータ読み込み
+    # index = 0   # インデックス用変数
+    # for line in codecs.open("../data/exp1/item_taiou_Xaux.csv", 'r', 'utf-8'):
+    #     # [0]：UserID
+    #     if index == 0:
+    #         movieLensXaux500x300item.insert(index, (index,line.rstrip("\n")))
+    #         index = index + 1
+    #     else:
+    #         if movieLensXaux500x300item[index-1][1] != line.rstrip("\n"):
+    #             movieLensXaux500x300item.insert(index, (index,line.rstrip("\n")))
+    #             index = index + 1
+    #
+    # # print(movieLensXaux500x300)
+    # # print(movieLensXaux500x300item)
+    # # print(movieLensXaux500x300user)
+    # # print(len(movieLensXaux500x300item))
+    # # print(len(movieLensXaux500x300user))
+    #
+    # auxiliaryMatrix = np.zeros([500,300])    # 0で補助評価値行列を初期化
+    # # 補助評価値行列の生成
+    # for i in range(len(movieLensXaux500x300)):
+    #     for j in range(len(movieLensXaux500x300user)):
+    #         if movieLensXaux500x300[i][0] == movieLensXaux500x300user[j][1]:   # UserIDの比較
+    #             break
+    #     for k in range(len(movieLensXaux500x300item)):
+    #         if movieLensXaux500x300[i][1] == movieLensXaux500x300item[k][1]:   # ItemID
+    #             auxiliaryMatrix[int(movieLensXaux500x300user[j][0])][int(movieLensXaux500x300item[k][0])] = movieLensXaux500x300[i][2]
+    #             break
+
+
     movieLensXaux500x300 = list()
     # MovieLensユーザデータ読み込み
-    i = 0   # インデックス用変数
+    index = 0   # インデックス用変数
+    input_path = "../data/exp1/ML_UserData_500x300.csv"
     for line in codecs.open(input_path, 'r', 'utf-8'):
         # ,でスプリット
         # [0]：UserID
         # [1]：ItemID
         # [2]：Rating
         # [3]：Timestamp
+        # [4]：Co-User Index
+        # [5]：UserID
+        # [6]：Co-Item Index
+        # [7]：ItemID
         line_split = line.split(",")
-        movieLensXaux500x300.insert(i, (line_split[0],line_split[1],line_split[2],line_split[3].rstrip("\n")))
+        movieLensXaux500x300.insert(index, (line_split[0],line_split[1],line_split[2],line_split[3],line_split[4],line_split[5],line_split[6],line_split[7].rstrip("\n")))
+        index = index + 1
 
-    # ユーザIDの対応表
-    movieLensXaux500x300user = list()
-    # MovieLensユーザデータ読み込み
-    i = 0   # インデックス用変数
-    for line in codecs.open("../data/movieLensXaux500x300user.csv", 'r', 'utf-8'):
-        # [0]：UserID
-        if i == 0:
-            movieLensXaux500x300user.insert(i, (i,line.rstrip("\n")))
-            i = i + 1
-        else:
-            if movieLensXaux500x300user[i-1][1] != line.rstrip("\n"):
-                movieLensXaux500x300user.insert(i, (i,line.rstrip("\n")))
-                i = i + 1
-
-    # アイテムIDの対応表
-    movieLensXaux500x300item = list()
-    # MovieLensユーザデータ読み込み
-    i = 0   # インデックス用変数
-    for line in codecs.open("../data/movieLensXaux500x300item.csv", 'r', 'utf-8'):
-        # [0]：UserID
-        if i == 0:
-            movieLensXaux500x300item.insert(i, (i,line.rstrip("\n")))
-            i = i + 1
-        else:
-            if movieLensXaux500x300item[i-1][1] != line.rstrip("\n"):
-                movieLensXaux500x300item.insert(i, (i,line.rstrip("\n")))
-                i = i + 1
-
-    # print(movieLensXaux500x300item)
-
-
-    auxiliaryMatrix = np.zeros([500,296])    # 0で補助評価値行列を初期化
+    auxiliaryMatrix = np.zeros([500,300])    # 0で補助評価値行列を初期化
     # 補助評価値行列の生成
     for i in range(len(movieLensXaux500x300)):
-        for j in range(len(movieLensXaux500x300user)):
-            if int(movieLensXaux500x300[i][0]) == movieLensXaux500x300user[j][1]:
-                break
-        for k in range(len(movieLensXaux500x300item)):
-            if int(movieLensXaux500x300[i][1]) == movieLensXaux500x300item[k][1]:
-                break
-            auxiliaryMatrix[int(movieLensXaux500x300user[j][0])][int(movieLensXaux500x300item[k][0])] = movieLensXaux500x300[i][2]
+        auxiliaryMatrix[int(movieLensXaux500x300[i][4])][int(movieLensXaux500x300[i][6])] = movieLensXaux500x300[i][2]
 
-    print(auxiliaryMatrix)
+    output_path = "../data/exp1/Xaux.csv"
+    for i in range(len(auxiliaryMatrix)):
+        out_data = auxiliaryMatrix[i]
+        if(i == 0): # 1行目書き込み
+            f = open(output_path, "w")
+            i += 1
+            print(out_data, end="\n", file=f)
+        else:       # 2行目以降の追記
+            f = open(output_path, "a")
+            print(out_data, end="\n", file=f)
+
     return auxiliaryMatrix
+
+"""
+ターゲット評価値行列の生成
+@INPUT:
+    input_path
+@OUTPUT:
+    Xtgt : an target matrix of dimension 500 x 300
+"""
+def getTargetMatrix(input_path):
+    movieLensXtgt900x300 = list()
+    # MovieLensユーザデータ読み込み
+    index = 0   # インデックス用変数
+    input_path = "../data/exp1/ML_UserData_900x300.csv"
+    for line in codecs.open(input_path, 'r', 'utf-8'):
+        # ,でスプリット
+        # [0]：UserID
+        # [1]：ItemID
+        # [2]：Rating
+        # [3]：Timestamp
+        # [4]：Co-User Index
+        # [5]：UserID
+        # [6]：Co-Item Index
+        # [7]：ItemID
+        line_split = line.split(",")
+        movieLensXaux500x300.insert(index, (line_split[0],line_split[1],line_split[2],line_split[3],line_split[4],line_split[5],line_split[6],line_split[7].rstrip("\n")))
+        index = index + 1
+
+    targetMatrix = np.zeros([900,300])    # 0でターゲット評価値行列を初期化
+    # 補助評価値行列の生成
+    for i in range(len(movieLensXtgt900x300)):
+        targetMatrix[int(movieLensXtgt900x300[i][4])][int(movieLensXtgt900x300[i][6])] = movieLensXtgt900x300[i][2]
+
+    output_path = "../data/exp1/Xtgt_ML.csv"
+    for i in range(len(targetMatrix)):
+        out_data = targetMatrix[i]
+        if(i == 0): # 1行目書き込み
+            f = open(output_path, "w")
+            i += 1
+            print(out_data, end="\n", file=f)
+        else:       # 2行目以降の追記
+            f = open(output_path, "a")
+            print(out_data, end="\n", file=f)
+
+    return targetMatrix
 
 """
 アイテム間類似度計算を行う
@@ -103,18 +185,39 @@ def getAuxiliaryMatrix(input_path):
     similarityMatrix : a similarity matrix of dimension N x K
 """
 def getItemItemSimilarity(Xaux):
-    similarityMatrix = np.zeros((len(Xaux[0]), len(Xaux[0])))    # 0で類似度行列を初期化
+    # print(len(Xaux[0])) # アイテム数=300
+    similarityMatrix = np.zeros([len(Xaux[0]), len(Xaux[0])])    # 0で類似度行列を初期化
+    # print(len(Xaux))  # ユーザ数=500
     URave = np.zeros(len(Xaux))    # 0でユーザ毎の評価平均を格納する行列を初期化
     for i in range(len(Xaux)):
-        URave[i] = sum(Xaux[i])/len(Xaux[i]) # ユーザの評価平均を計算して格納
+        URave[i] = sum(Xaux[i])/len(Xaux[i]) # ユーザの評価平均URaveを計算して格納
+
+    # for i in range(len(URave)):
+    #     print("URave[",i,"]=",URave[i])
+    #
+    # print("similarityMatrix=",len(similarityMatrix))    # アイテム数の300
+    # print("similarityMatrix[0]=",len(similarityMatrix[0]))  # アイテム数の300
 
     # アイテム間類似度の対称行列を生成
     for i in range(len(similarityMatrix)):
         for j in range(len(similarityMatrix[i])):
-            print("ij = ", i,j)
+            # print("ij = ", i,j)
+            # if i == 298:
+            #     if j == 0:
+            #         print("ij =",i,j)
+            #         print("item1 = ",Xaux[:,i])
+            #         print("item2 = ",Xaux[:,j])
+            #         print("URave = ",URave)
+            #
+            # if i == 299:
+            #     if j == 0:
+            #         print("ij =",i,j)
+            #         print("item1 = ",Xaux[:,i])
+            #         print("item2 = ",Xaux[:,j])
+            #         print("URave = ",URave)
             if i == j:  # 同じアイテムへの類似度より１
-                # similarityMatrix[i][j] = 1
-                similarityMatrix[i][j] = adjusted_cosine(Xaux[:,i], Xaux[:,j], URave)
+                similarityMatrix[i][j] = 1
+                # similarityMatrix[i][j] = adjusted_cosine(Xaux[:,i], Xaux[:,j], URave)
                 break
             else:
                 similarityMatrix[i][j] = adjusted_cosine(Xaux[:,i], Xaux[:,j], URave)
@@ -123,6 +226,7 @@ def getItemItemSimilarity(Xaux):
 
 """
 adjusted cosine類似度を計算する
+アイテムベクトルのどちらかが0だと，NaN値になるので−1を返す
 @INPUT:
     item1 : a vector of item i
     item2 : a vector of item j
@@ -131,9 +235,9 @@ adjusted cosine類似度を計算する
     similarity : a similarity between item i and item j
 """
 def adjusted_cosine(item1, item2, URave):
-    print("item1 = ",item1)
-    print("item2 = ",item2)
-    print("URave = ",URave)
+    # print("item1 = ",item1)
+    # print("item2 = ",item2)
+    # print("URave = ",URave)
 
     sum_numerator = 0
     sum_denominator1 = 0
@@ -147,6 +251,9 @@ def adjusted_cosine(item1, item2, URave):
                 sum_denominator2 = sum_denominator2 + np.square(item2[i] - URave[i])
 
     similarity = sum_numerator/(np.sqrt(sum_denominator1) * np.sqrt(sum_denominator2))
+    if similarity != similarity:    # NaNかチェック
+        similarity = -1
+        print("アイテムに誰も評価してないよ")
     return similarity
 
 """
@@ -182,6 +289,8 @@ def getTransition(W):
                 P[i][j] = 0
             else:
                 P[i][j] = W[i][j]/sum(W[i,:])
+                if P[i][j] != P[i][j]:  # NaN判定用
+                    P[i][j] = 0
     return P
 
 """
@@ -194,11 +303,13 @@ def getTransition(W):
     yIndex : an user profile index for yL + yU of dimension 1 x M
 """
 def replaceUserProfile(y,flag):
-    global K_index
+    global K_index  # 0行だとエラー
     global U_index
     global yL
     global yU
     global yIndex
+    # K_index = U_index = yL = yU = yIndex = np.array()
+
     K = 0   # ユーザの評価してるアイテム数
     U = 0   # ユーザが評価してないアイテム数
 
@@ -332,11 +443,13 @@ def calculateOptimizationProblem(Prep, userplofile, L):
     # print("yL = ",yL) # ユーザが付けた評価値
     # print("yU = ",yU) # 未評価（0）
     # print("yIndex = ",yIndex) # yL→yUの順に並べ替えたユーザプロファイル(インデックス)
+
+    # for i in range(len(Prep)):
+    #     print("Prep =",Prep[i])
     temp = yL.copy()
     yL = np.zeros([1,len(temp)])
     for i in range(len(temp)):
         yL[0][i] = temp[i]
-
 
 
     # PrepのI，O，R，Qへの分割処理
@@ -383,7 +496,6 @@ def calculateOptimizationProblem(Prep, userplofile, L):
     # print(R)
     # print("Q =")
     # print(Q)
-
 
     # AとBの初期化
     A = np.zeros([M,K])
@@ -447,7 +559,7 @@ def calculateOptimizationProblem(Prep, userplofile, L):
     cvxoptb = matrix(optb)
 
     sol = cvxopt.solvers.qp(cvxoptP,cvxoptq,cvxoptG,cvxopth,cvxoptA,cvxoptb)
-    print(sol["x"])
+    # print(sol["x"])
     # print(sol["primal objective"])
     Xi = sol["x"]
     return Xi
@@ -493,23 +605,32 @@ if __name__ == "__main__":
     # print(adjusted_cosine(X, Y, N))
 
 
-    N = int(300)
-    M = int(500)
+    N = int(500)    # ユーザ数
+    M = int(300)    # アイテム数
     Xaux = np.zeros([N, M])    # N*M行列の初期化
     # Xaux = np.random.rand(N,M)
     # Xaux = np.array([[3.0, 5.0, 1.0, 0.0], [0.0, 2.0, 4.0, 0.0], [0.0, 1.0, 0.0, 2.0], [3.0, 4.0, 5.0, 2.0]])
-    Xaux = getAuxiliaryMatrix('../data/movieLensXaux500x300.csv')
-    
-    # Xaux = getAuxiliaryMatrix('../data/exp2/movieLensUserItemCount300.csv')   # 実験2
+    # 実験1の補助評価値行列
+    print("補助評価値行列の取得")
+    Xaux = getAuxiliaryMatrix('../data/exp1/movieLensUserData500x300down.csv')
+    # print("ターゲット評価値行列の取得")
+    # Xaux = getTargetMatrix('../data/exp1/movieLensUserData900x300.csv')
 
+    Xtgt = getAuxiliaryMatrix('../data/exp2/movieLensUserItemCount300.csv')   # 実験2
+
+    print("類似度行列の取得")
     similarityMatrix = getItemItemSimilarity(Xaux)
     # print("similarityMatrix = ")
-    # print(similarityMatrix)
+    # for i in range(len(similarityMatrix)):
+    #     print("No.",i)
+    #     print(similarityMatrix[i])
 
+    print("重み行列の取得")
     W = getWeight(similarityMatrix)
     # print("W = ")
     # print(W)
 
+    print("遷移確率行列の取得")
     P = getTransition(W)
     # print("P = ")
     # print(P)
@@ -522,21 +643,33 @@ if __name__ == "__main__":
     # print("D = ")
     # print(D)
 
+    print("ラプラシアン行列Lの取得")
     L = D - W
     # print("L = ")
     # print(L)
-
     # print(Xaux[0,:])
+
+    print("各評価値が含むノイズの取得")
     for i in range(N):
-        Prep = replaceTransition(P, Xaux[i,:])
+        Prep = replaceTransition(P, Xtgt[i,:])
         # print("Prep",i,"= ")
         # print(Prep)
-        Xi = calculateOptimizationProblem(Prep, Xaux[i,:],L)
+        Xi = calculateOptimizationProblem(Prep, Xtgt[i,:],L)
         rho = getAverageNoise(Xi)
         nnmuFlag = detectNNMU(rho,threshold=0.3)
         # print("Xi = ", Xi)
         # print("rho = ",rho)
-        if nnmuFlag == True:
-            print("No.",i,"user is NNMU.")
-        else:
-            print("No.",i,"user is not NNMU.")
+        # if nnmuFlag == True:
+        #     print("No.",i,"user is NNMU.")
+        # else:
+        #     print("No.",i,"user is not NNMU.")
+
+        output_path = "../data/exp1/outputNNMU.csv"
+        out_data = rho
+        if(i == 0): # 1行目書き込み
+            f = open(output_path, "w")
+            i += 1
+            print(out_data, end="\n", file=f)
+        else:       # 2行目以降の追記
+            f = open(output_path, "a")
+            print(out_data, end="\n", file=f)
