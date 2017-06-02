@@ -300,7 +300,7 @@ class DataConstructor:
             i = i + 1
 
     """
-    ユーザの評価回数を数えて取得
+    共通アイテム数=300でのユーザの評価回数を数えて取得
     """
     def getUserCount300(self):
         # ML処理
