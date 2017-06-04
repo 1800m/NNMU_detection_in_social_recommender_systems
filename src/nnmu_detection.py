@@ -9,6 +9,11 @@
 
 
 try:
+    import random
+except:
+    print("This implementation requires the random module.")
+    exit(0)
+try:
     import numpy as np
 except:
     print("This implementation requires the numpy module.")
@@ -24,7 +29,6 @@ try:
 except:
     print("This implementation requires the cvxopt module.")
     exit(0)
-import pdb
 
 ###############################################################################
 
@@ -107,9 +111,23 @@ def getTargetMatrix():
         index = index + 1
 
     targetMatrix = np.zeros([900,300])    # 0でターゲット評価値行列を初期化
+
     # 補助評価値行列の生成
+    # ここで，100人にノイズを加える
     for i in range(len(movieLensXtgt500x300)):
-        targetMatrix[int(movieLensXtgt500x300[i][4])][int(movieLensXtgt500x300[i][6])] = movieLensXtgt500x300[i][2]
+        if i < 400: # noise-free
+            targetMatrix[int(movieLensXtgt500x300[i][4])][int(movieLensXtgt500x300[i][6])] = movieLensXtgt500x300[i][2]
+        else:   # NNMU
+            if movieLensXtgt500x300[i][2] != 0:
+                while True: # ノイズが範囲内になるまで繰り返す
+                    noisy_rating = int(movieLensXtgt500x300[i][2]) + random.randint(-4,4)    # -4〜4の整数でノイズをのせる
+                    # 評価値の範囲内か判定
+                    if noisy_rating >= 1:
+                        if noisy_rating <= 5:
+                            targetMatrix[int(movieLensXtgt500x300[i][4])][int(movieLensXtgt500x300[i][6])] = noisy_rating
+                            break
+            else:
+                targetMatrix[int(movieLensXtgt500x300[i][4])][int(movieLensXtgt500x300[i][6])] = 0
 
     output_path = "../data/exp1/test_ML/Xtgt_ML"+str(count)+".csv"
     for i in range(len(targetMatrix)):
@@ -555,10 +573,8 @@ if __name__ == "__main__":
     # Xaux = np.random.rand(N,M)
     # Xaux = np.array([[3.0, 5.0, 1.0, 0.0], [0.0, 2.0, 4.0, 0.0], [0.0, 1.0, 0.0, 2.0], [3.0, 4.0, 5.0, 2.0]])
     # 実験1の補助評価値行列
-    print("補助評価値行列の取得")
+    print("補助評価値行列Xauxの取得")
     Xaux = getAuxiliaryMatrix()
-    print("ターゲット評価値行列の取得")
-    Xtgt = getTargetMatrix('../data/exp2/movieLensUserItemCount300.csv')
 
     print("類似度行列の取得")
     similarityMatrix = getItemItemSimilarity(Xaux)
@@ -567,12 +583,12 @@ if __name__ == "__main__":
     #     print("No.",i)
     #     print(similarityMatrix[i])
 
-    print("重み行列の取得")
+    print("重み行列Wの取得")
     W = getWeight(similarityMatrix)
     # print("W = ")
     # print(W)
 
-    print("遷移確率行列の取得")
+    print("遷移確率行列Pの取得")
     P = getTransition(W)
     # print("P = ")
     # print(P)
@@ -591,27 +607,37 @@ if __name__ == "__main__":
     # print(L)
     # print(Xaux[0,:])
 
-    print("各評価値が含むノイズの取得")
-    for i in range(N):
-        Prep = replaceTransition(P, Xtgt[i,:])
-        # print("Prep",i,"= ")
-        # print(Prep)
-        Xi = calculateOptimizationProblem(Prep, Xtgt[i,:],L)
-        rho = getAverageNoise(Xi)
-        nnmuFlag = detectNNMU(rho,threshold=0.3)
-        # print("Xi = ", Xi)
-        # print("rho = ",rho)
-        # if nnmuFlag == True:
-        #     print("No.",i,"user is NNMU.")
-        # else:
-        #     print("No.",i,"user is not NNMU.")
+    for count in range(10):
+        print("test count = ",count)
 
-        output_path = "../data/exp1/outputNNMU.csv"
-        out_data = rho
-        if(i == 0): # 1行目書き込み
-            f = open(output_path, "w")
-            i += 1
-            print(out_data, end="\n", file=f)
-        else:       # 2行目以降の追記
-            f = open(output_path, "a")
-            print(out_data, end="\n", file=f)
+        print("ターゲット評価値行列Xtgtの取得")
+        Xtgt = getTargetMatrix()
+
+        # 出力先のパス
+        output_path = "../data/exp1/outputNNMU"+str(count)+".csv"
+
+        print("各ターゲット評価値行列の評価値が含むノイズの取得")
+        for i in range(N):
+            print("ユーザプロファイルにもとづき遷移行列Pを変形")
+            Prep = replaceTransition(P, Xtgt[i,:])
+            # print("Prep",i,"= ")
+            # print(Prep)
+            print("各ユーザプロファイルの評価値が含むノイズを計算")
+            Xi = calculateOptimizationProblem(Prep, Xtgt[i,:],L)
+            rho = getAverageNoise(Xi)
+            nnmuFlag = detectNNMU(rho,threshold=0.3)
+            # print("Xi = ", Xi)
+            # print("rho = ",rho)
+            # if nnmuFlag == True:
+            #     print("No.",i,"user is NNMU.")
+            # else:
+            #     print("No.",i,"user is not NNMU.")
+
+            out_data = rho
+            if(i == 0): # 1行目書き込み
+                f = open(output_path, "w")
+                i += 1
+                print(out_data, end="\n", file=f)
+            else:       # 2行目以降の追記
+                f = open(output_path, "a")
+                print(out_data, end="\n", file=f)
