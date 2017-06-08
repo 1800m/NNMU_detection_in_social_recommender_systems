@@ -68,20 +68,25 @@ def getAuxiliaryMatrix(N,M,number):
     for i in range(len(movieLensXaux)):
         auxiliaryMatrix[int(movieLensXaux[i][4])][int(movieLensXaux[i][6])] = movieLensXaux[i][2]
 
-    output_path = "../data/exp1/auxiliary/Xaux"+str(number)+".csv"
-    for i in range(len(auxiliaryMatrix)):
-        out_data = auxiliaryMatrix[i]
-        if(i == 0): # 1行目書き込み
-            f = open(output_path, "w")
-            i += 1
-            print(out_data, end="\n", file=f)
-        else:       # 2行目以降の追記
-            f = open(output_path, "a")
-            print(out_data, end="\n", file=f)
+    # output_path = "../data/exp1/auxiliary/Xaux"+str(number)+".csv"
+    # for i in range(len(auxiliaryMatrix)):
+    #     out_data = auxiliaryMatrix[i]
+    #     if(i == 0): # 1行目書き込み
+    #         f = open(output_path, "w")
+    #         i += 1
+    #         print(out_data, end="\n", file=f)
+    #     else:       # 2行目以降の追記
+    #         f = open(output_path, "a")
+    #         print(out_data, end="\n", file=f)
 
     return auxiliaryMatrix
 
 
+
 if __name__ == "__main__":
-    Xaux = getAuxiliaryMatrix(500, 300, 150)
-    print(Xaux)
+    Xaux = getAuxiliaryMatrix(500, 300, 300)
+    # print(Xaux)
+
+    # 要素数を数える
+    print(len(Xaux))
+    print(len(np.where(Xaux != 0)[0]))

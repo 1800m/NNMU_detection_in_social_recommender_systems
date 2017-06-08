@@ -584,7 +584,7 @@ def calculateOptimizationProblem(Prep, userplofile, L):
     # print(optG)
 
     # cvxoptの独自matrixクラス
-    cvxoptP = matrix(optP)
+    cvxoptP = 2*matrix(optP)
     cvxoptq = matrix(optq)
     cvxoptG = matrix(optG)
     cvxopth = matrix(opth)
