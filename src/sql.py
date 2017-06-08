@@ -113,26 +113,49 @@ def createEachMovieTitle():
     conn.commit()   # commit()しないと変更がかからない
 
 
+# """
+# EachMovieTitleをMovieLensと部分一致させて，比較結果をテーブルに格納
+# [0]:EachMovie ItemID
+# [1]:MovieLens ItemID
+# """
+# def compareTitle():
+#     deleteTable("MatchID")
+#     create_table = "create table MatchID (EM_ItemID int, ML_ItemID int)"
+#     c.execute(create_table)
+#
+#     c2 = conn.cursor()
+#     c3 = conn.cursor()
+#     for row1 in c.execute("select * from EachMovieTitle"): # rowはtuple
+#         for row2 in c2.execute("select * from MovieLensTitle where Title like \""+row1[1]+"%\""):
+#             insert_sql = "insert into MatchID (EM_ItemID, ML_ItemID) values (?, ?)"
+#             insert_data = (row1[0], row2[0])
+#             c3.execute(insert_sql, insert_data)
+#
+#     conn.commit()
+
 """
-EachMovieTitleをMovieLensと部分一致させて，比較結果をテーブルに格納
-matchTable
+EachMovieTitleをMovieLensと部分一致させた比較結果(MatchID.csv)を読み込みテーブルに格納
+MatchID
 [0]:EachMovie ItemID
 [1]:MovieLens ItemID
 """
-def compareTitle():
+def readMatchID():
+    deleteTable("MatchID")
     create_table = "create table MatchID (EM_ItemID int, ML_ItemID int)"
     c.execute(create_table)
 
-    c.execute(u"select * from EachMovieTitle")
-    c2 = conn.cursor()
-    c3 = conn.cursor()
-    for row1 in c: # rowはtuple
-        for row2 in c2.execute("select * from MovieLensTitle where Title like \""+row1[1]+"%\""):
-            insert_sql = "insert into MatchID (EM_ItemID, ML_ItemID) values (?, ?)"
-            insert_data = (row1[0], row2[0])
-            c3.execute(insert_sql, insert_data)
-
-    conn.commit()
+    input_path = "../data/matchID.csv"
+    index = 0   # インデックス用変数
+    for line in codecs.open(input_path, 'r', 'utf-8'):
+        # ,でスプリット
+        # [0]：EM_ItemID
+        # [1]：ML_ItemID
+        line_split = line.split(",")
+        insert_sql = "insert into MatchID (EM_ItemID, ML_ItemID) values (?, ?)"
+        insert_data = (line_split[0],line_split[1].rstrip("\n"))
+        c.execute(insert_sql, insert_data)
+        index = index + 1
+    conn.commit()   # commit()しないと変更がかからない
 
 """
 EachMovieTitleをMovieLensの共通アイテム数300でのMovieLensの全ユーザデータ
@@ -241,7 +264,36 @@ def createMovieLensItem300():
     conn.commit()   # commit()しないと変更がかからない
 
 """
-共通アイテムの上位300のEachMovieアイテムIDの対応表
+共通アイテムの上位300のアイテムIDの対応表
+[0]:EM_ItemID
+[1]:ML_ItemID
+"""
+def createMatchIdTop300():
+    deleteTable("MatchIdTop300")
+    create_table = "create table MatchIdTop300 (EM_ItemID int, ML_ItemID int, EM_Count int, ML_Count int)"
+    c.execute(create_table)
+
+    input_path = '../data/exp1/matchIdTop300.csv'
+    # MovieLensのデータ読み込み
+    index = 0
+
+    for line in codecs.open(input_path, 'r', 'utf-8'):
+        # ,でスプリット
+        # [0]：EachMovie ItemID
+        # [1]：MovieLens ItemID
+        # [2]：EachMovie ItemIDの被評価回数
+        # [3]：MovieLens ItemIDの被評価回数
+        # [3]について降順に並べている
+        line_split = line.split(",")
+        insert_sql = "insert into MatchIdTop300 (EM_ItemID, ML_ItemID, EM_Count, ML_Count) values (?, ?, ?, ?)"
+        insert_data = (line_split[0], line_split[1], line_split[2], line_split[3].rstrip("\n"))
+        c.execute(insert_sql, insert_data)
+        index = index + 1
+
+    conn.commit()   # commit()しないと変更がかからない
+
+"""
+共通アイテムの上位300
 [0]:IndexID
 [1]:ItemID
 """
@@ -323,22 +375,25 @@ def getCoList_ML_Xaux():
             f = open(output_path, "a")
             print(out_data, end="\n", file=f)
 
+# """
 # EachMovieのXtgtのデータを出力
-def getCoList_EM_Xtgt():
-    i = 0   # ループ用変数
-    output_path = "../data/exp1/EM_UserData_500x300.csv"
-    select_sql = 'select * from (EachMovieData inner join EachMovieUser500 on EachMovieData.UserID = EachMovieUser500.UserID) inner join EachMovieItem300 on EachMovieData.ItemID = EachMovieItem300.ItemID'    # 3個結合
-
-    for row in c.execute(select_sql):
-        # print(row)
-        out_data = str(row[0])+","+str(row[1])+","+str(row[2])+","+str(row[3])+","+str(row[4])+","+str(row[5])+","+str(row[6])+","+str(row[7])
-        if(i == 0): # 1行目書き込み
-            f = open(output_path, "w")
-            i += 1
-            print(out_data, end="\n", file=f)
-        else:       # 2行目以降の追記
-            f = open(output_path, "a")
-            print(out_data, end="\n", file=f)
+# 共通アイテム300でしぼってから，評価回数を数えてないからダメ
+# """
+# def getCoList_EM_Xtgt():
+#     i = 0   # ループ用変数
+#     output_path = "../data/exp1/EM_UserData_500x300.csv"
+#     select_sql = 'select * from (EachMovieData inner join EachMovieUser500 on EachMovieData.UserID = EachMovieUser500.UserID) inner join EachMovieItem300 on EachMovieData.ItemID = EachMovieItem300.ItemID'    # 3個結合
+#
+#     for row in c.execute(select_sql):
+#         # print(row)
+#         out_data = str(row[0])+","+str(row[1])+","+str(row[2])+","+str(row[3])+","+str(row[4])+","+str(row[5])+","+str(row[6])+","+str(row[7])
+#         if(i == 0): # 1行目書き込み
+#             f = open(output_path, "w")
+#             i += 1
+#             print(out_data, end="\n", file=f)
+#         else:       # 2行目以降の追記
+#             f = open(output_path, "a")
+#             print(out_data, end="\n", file=f)
 
 """
 メイン関数
@@ -359,7 +414,10 @@ if __name__ == "__main__":
     # createEachMovieTitle()    # EachMovieTitle
 
     # deleteTable("MatchID")
+    # compareTitleだと何か重複が発生しているため，txtデータからマッチングを作成したmatchID.csvより，読み込む
     # compareTitle()  # MatchID
+    # readMatchID()   # MatchID
+    createMatchIdTop300()   # MatchIdTop300
 
     # deleteTable("MovieLensData_Item300")
     # createMovieLensData_Item300() # MovieLensData_Item300
@@ -377,7 +435,7 @@ if __name__ == "__main__":
     # deleteTable("EachMovieUser500")
     # createEachMovieUser500()  # EachMovieUser500とMovieLensUser500
 
-    getCoList_EM_Xtgt()
+    # getCoList_EM_Xtgt()
 
     # select_sql = "select ML_ItemID from MatchID"
     # for row in c.execute(select_sql):
