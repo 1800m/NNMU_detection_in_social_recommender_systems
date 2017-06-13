@@ -91,8 +91,7 @@ MLのターゲット評価値行列の生成
 @OUTPUT:
     Xtgt : an target matrix of dimension N x M
 """
-def getTargetMatrixML(N,M,number):
-    count = 0
+def getTargetMatrixML(N,M,number,count):
     movieLensXtgt = list()   # 3結合の対応表を保持
 
     index = 0   # インデックス用変数
@@ -132,7 +131,7 @@ def getTargetMatrixML(N,M,number):
             else:
                 targetMatrix[int(movieLensXtgt[i][4])][int(movieLensXtgt[i][6])] = 0
 
-    output_path = "../data/exp1/test_ML_"+str(number)+"/Xtgt_ML"+str(count)+".csv"
+    output_path = "../data/exp1/result_ML_"+str(number)+"/Xtgt_ML"+str(count)+".csv"
     for i in range(len(targetMatrix)):
         out_data = targetMatrix[i]
         if(i == 0): # 1行目書き込み
@@ -152,8 +151,7 @@ EMのターゲット評価値行列の生成
 @OUTPUT:
     Xtgt : an target matrix of dimension N x M
 """
-def getTargetMatrixEM(N,M,number):
-    count = 0
+def getTargetMatrixEM(N,M,number,count):
     eachMovieXtgt = list()   # 3結合の対応表を保持
 
     index = 0   # インデックス用変数
@@ -193,7 +191,7 @@ def getTargetMatrixEM(N,M,number):
             else:
                 targetMatrix[int(eachMovieXtgt[i][4])][int(eachMovieXtgt[i][6])] = 0
 
-    output_path = "../data/exp1/test_EM_"+str(number)+"/Xtgt_EM"+str(count)+".csv"
+    output_path = "../data/exp1/result_EM_"+str(number)+"/Xtgt_EM"+str(count)+".csv"
     for i in range(len(targetMatrix)):
         out_data = targetMatrix[i]
         if(i == 0): # 1行目書き込み
@@ -688,6 +686,9 @@ if __name__ == "__main__":
     # N = [[3.0, 3.5, 4.0]]
     # print(adjusted_cosine(X, Y, N))
 
+#################################################
+# 300
+#################################################
     args = sys.argv
     # number = 100    # 共通アイテム数
     number = args[1]    # 共通アイテム数
@@ -732,13 +733,13 @@ if __name__ == "__main__":
     # print(L)
     # print(Xaux[0,:])
 
+    # test10回分くりかえす
     for count in range(10):
         print("test count = ",count)
 
         print("ターゲット評価値行列Xtgtの取得")
-        Xtgt_ML = getTargetMatrixML(N,M,number)
-        Xtgt_EM = getTargetMatrixEM(N,M,number)
-
+        Xtgt_ML = getTargetMatrixML(N,M,number,count)
+        Xtgt_EM = getTargetMatrixEM(N,M,number,count)
 
         print("ターゲット評価値行列の各ユーザプロファイルの評価値が含むノイズの取得")
         # 出力先のパス
@@ -794,9 +795,10 @@ if __name__ == "__main__":
                 f = open(output_path, "a")
                 print(out_data, end="\n", file=f)
 
-
-    args = sys.argv
-    # number = 100    # 共通アイテム数
+#################################################
+# 200
+#################################################
+    # number = 200    # 共通アイテム数
     number = args[2]    # 共通アイテム数
 
     N = int(500)    # ユーザ数
@@ -843,8 +845,8 @@ if __name__ == "__main__":
         print("test count = ",count)
 
         print("ターゲット評価値行列Xtgtの取得")
-        Xtgt_ML = getTargetMatrixML(N,M,number)
-        Xtgt_EM = getTargetMatrixEM(N,M,number)
+        Xtgt_ML = getTargetMatrixML(N,M,number,count)
+        Xtgt_EM = getTargetMatrixEM(N,M,number,count)
 
 
         print("ターゲット評価値行列の各ユーザプロファイルの評価値が含むノイズの取得")
@@ -902,8 +904,10 @@ if __name__ == "__main__":
                 print(out_data, end="\n", file=f)
 
 
-    args = sys.argv
-    # number = 100    # 共通アイテム数
+#################################################
+# 150
+#################################################
+    # number = 150    # 共通アイテム数
     number = args[3]    # 共通アイテム数
 
     N = int(500)    # ユーザ数
@@ -950,8 +954,8 @@ if __name__ == "__main__":
         print("test count = ",count)
 
         print("ターゲット評価値行列Xtgtの取得")
-        Xtgt_ML = getTargetMatrixML(N,M,number)
-        Xtgt_EM = getTargetMatrixEM(N,M,number)
+        Xtgt_ML = getTargetMatrixML(N,M,number,count)
+        Xtgt_EM = getTargetMatrixEM(N,M,number,count)
 
 
         print("ターゲット評価値行列の各ユーザプロファイルの評価値が含むノイズの取得")

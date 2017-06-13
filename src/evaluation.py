@@ -3,6 +3,7 @@
 
 import sqlite3
 import codecs
+import sys
 
 """
 実験1
@@ -41,10 +42,10 @@ def getResultSummarizationExp1(input_path,N):
     out_data = ",,,,,,,,,"
     f = open(output_path, "a")
     print(out_data, end="\n", file=f)
-    out_data = "=AVERAGE(A1;A400),=AVERAGE(B1;B400),=AVERAGE(C1;C400),=AVERAGE(D1;D400),=AVERAGE(E1;E400),=AVERAGE(F1;F400),=AVERAGE(G1;G400),=AVERAGE(H1;H400),=AVERAGE(I1;I400),=AVERAGE(J1;J400)"
+    out_data = "=AVERAGE(A1:A400),=AVERAGE(B1:B400),=AVERAGE(C1:C400),=AVERAGE(D1:D400),=AVERAGE(E1:E400),=AVERAGE(F1:F400),=AVERAGE(G1:G400),=AVERAGE(H1:H400),=AVERAGE(I1:I400),=AVERAGE(J1:J400)"
     f = open(output_path, "a")
     print(out_data, end="\n", file=f)
-    out_data = "=AVERAGE(A401;A500),=AVERAGE(B401;B500),=AVERAGE(C401;C500),=AVERAGE(D401;D500),=AVERAGE(E401;E500),=AVERAGE(F401;F500),=AVERAGE(G401;G500),=AVERAGE(H401;H500),=AVERAGE(I401;I500),=AVERAGE(J401;J500)"
+    out_data = "=AVERAGE(A401:A500),=AVERAGE(B401:B500),=AVERAGE(C401:C500),=AVERAGE(D401:D500),=AVERAGE(E401:E500),=AVERAGE(F401:F500),=AVERAGE(G401:G500),=AVERAGE(H401:H500),=AVERAGE(I401:I500),=AVERAGE(J401:J500)"
     f = open(output_path, "a")
     print(out_data, end="\n", file=f)
 
@@ -52,11 +53,11 @@ def getResultSummarizationExp1(input_path,N):
     f = open(output_path, "a")
     print(out_data, end="\n", file=f)
 
-    out_data = "Noise-Free average,=AVERAGE(A1;J400),,,,,,,,"
+    out_data = "Noise-Free average,=AVERAGE(A1:J400),,,,,,,,"
     f = open(output_path, "a")
     print(out_data, end="\n", file=f)
 
-    out_data = "NNMU average,=AVERAGE(A401;J500),,,,,,,,"
+    out_data = "NNMU average,=AVERAGE(A401:J500),,,,,,,,"
     f = open(output_path, "a")
     print(out_data, end="\n", file=f)
 
@@ -106,6 +107,8 @@ def getResultExp1(input_path, N):
 
 
 if __name__ == "__main__":
+    args = sys.argv # 10 20 50 100
+
     getResultSummarizationExp1("../data/exp1/result_EM_150/",150)
     getResultSummarizationExp1("../data/exp1/result_EM_200/",200)
     getResultSummarizationExp1("../data/exp1/result_EM_300/",300)
@@ -113,32 +116,36 @@ if __name__ == "__main__":
     getResultSummarizationExp1("../data/exp1/result_ML_200/",200)
     getResultSummarizationExp1("../data/exp1/result_ML_300/",300)
 
-    N = 100
-    input_path = "../data/exp1/result_EM_150/test"
-    TPlist = getResultExp1(input_path,N)
-    print("EM150")
-    print(TPlist)
-    aveTP = sum(TPlist)/len(TPlist)
-    print("EM prec@100 = ",aveTP)
-
-    input_path = "../data/exp1/result_ML_150/test"
-    TPlist = getResultExp1(input_path,N)
-    print("ML150")
-    print(TPlist)
-    aveTP = sum(TPlist)/len(TPlist)
-    print("ML prec@100 = ",aveTP)
-
-    for i in range(2):
-        input_path = "../data/exp1/result_EM_"+str((i+2)*100)+"/test"
+    for num in range(len(args)-1):
+        N = int(args[num+1])
+        print("top@",N)
+        input_path = "../data/exp1/result_EM_150/test"
         TPlist = getResultExp1(input_path,N)
-        print("EM"+str((i+2)*100))
+        print("EM150")
         print(TPlist)
         aveTP = sum(TPlist)/len(TPlist)
-        print("EM prec@100 = ",aveTP)
+        print("EM prec@"+str(N)+" = ",aveTP)
 
-        input_path = "../data/exp1/result_ML_"+str((i+2)*100)+"/test"
+        input_path = "../data/exp1/result_ML_150/test"
         TPlist = getResultExp1(input_path,N)
-        print("ML"+str((i+2)*100))
+        print("ML150")
         print(TPlist)
         aveTP = sum(TPlist)/len(TPlist)
-        print("ML prec@100 = ",aveTP)
+        print("ML prec@"+str(N)+" = ",aveTP)
+
+        for i in range(2):
+            input_path = "../data/exp1/result_EM_"+str((i+2)*100)+"/test"
+            TPlist = getResultExp1(input_path,N)
+            print("EM"+str((i+2)*100))
+            print(TPlist)
+            aveTP = sum(TPlist)/len(TPlist)
+            print("EM prec@"+str(N)+" = ",aveTP)
+
+            input_path = "../data/exp1/result_ML_"+str((i+2)*100)+"/test"
+            TPlist = getResultExp1(input_path,N)
+            print("ML"+str((i+2)*100))
+            print(TPlist)
+            aveTP = sum(TPlist)/len(TPlist)
+            print("ML prec@"+str(N)+" = ",aveTP)
+
+        print("")
