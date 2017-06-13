@@ -77,20 +77,26 @@ def getResultExp1(input_path, N):
     for count in range(10):
         TP = 0
         tempResult = list()
+        loop_counter = 0    # 500行カウントアップ用
         for line in codecs.open(input_path+str(count)+".csv", 'r', 'utf-8'):
             # ,でスプリット
             # [0]：Index
             # [1]：Noisy order
             line_split = line.split(",")
             tempResult.insert(index, (line_split[0],line_split[1].rstrip("\n")))
+            loop_counter = loop_counter + 1
+            if loop_counter == 500:
+                break
 
         tempResult = sorted(tempResult, reverse=True, key=lambda x: float(x[1]))    # 降順
-        # print(tempResult)
+        # for i in range(len(tempResult)):
+        #     print(tempResult[i])
 
         # 降順のTop100を調べる→tempResult[i][0]：元のIndexが400番以上か比較→閾値以上か比較→検出
         for i in range(N):
             if int(tempResult[i][0]) >= 400:
-                if float(tempResult[i][1]) > 0.4:
+                # TP = TP + 1
+                if float(tempResult[i][1]) > 0.3:
                     TP = TP + 1
         TPlist.insert(count, TP)
 
@@ -100,38 +106,39 @@ def getResultExp1(input_path, N):
 
 
 if __name__ == "__main__":
-    # getResultSummarizationExp1("../data/exp1/result_EM_150/",150)
+    getResultSummarizationExp1("../data/exp1/result_EM_150/",150)
     getResultSummarizationExp1("../data/exp1/result_EM_200/",200)
-    # getResultSummarizationExp1("../data/exp1/result_EM_300/",300)
-    # getResultSummarizationExp1("../data/exp1/result_ML_150/",150)
+    getResultSummarizationExp1("../data/exp1/result_EM_300/",300)
+    getResultSummarizationExp1("../data/exp1/result_ML_150/",150)
     getResultSummarizationExp1("../data/exp1/result_ML_200/",200)
-    # getResultSummarizationExp1("../data/exp1/result_ML_300/",300)
+    getResultSummarizationExp1("../data/exp1/result_ML_300/",300)
 
-    # input_path = "../data/exp1/result_EM_150/test"
-    # TPlist = getResultExp1(input_path,100)
-    # print("EM150")
-    # print(TPlist)
-    # aveTP = sum(TPlist)/len(TPlist)
-    # print("EM prec@100 = ",aveTP)
-    #
-    # input_path = "../data/exp1/result_ML_150/test"
-    # TPlist = getResultExp1(input_path,100)
-    # print("ML150")
-    # print(TPlist)
-    # aveTP = sum(TPlist)/len(TPlist)
-    # print("ML prec@100 = ",aveTP)
-    #
-    # for i in range(2):
-    #     input_path = "../data/exp1/result_EM_"+str((i+2)*100)+"/test"
-    #     TPlist = getResultExp1(input_path,100)
-    #     print("EM"+str((i+2)*100))
-    #     print(TPlist)
-    #     aveTP = sum(TPlist)/len(TPlist)
-    #     print("EM prec@100 = ",aveTP)
-    #
-    #     input_path = "../data/exp1/result_ML_"+str((i+2)*100)+"/test"
-    #     TPlist = getResultExp1(input_path,100)
-    #     print("ML"+str((i+2)*100))
-    #     print(TPlist)
-    #     aveTP = sum(TPlist)/len(TPlist)
-    #     print("ML prec@100 = ",aveTP)
+    N = 100
+    input_path = "../data/exp1/result_EM_150/test"
+    TPlist = getResultExp1(input_path,N)
+    print("EM150")
+    print(TPlist)
+    aveTP = sum(TPlist)/len(TPlist)
+    print("EM prec@100 = ",aveTP)
+
+    input_path = "../data/exp1/result_ML_150/test"
+    TPlist = getResultExp1(input_path,N)
+    print("ML150")
+    print(TPlist)
+    aveTP = sum(TPlist)/len(TPlist)
+    print("ML prec@100 = ",aveTP)
+
+    for i in range(2):
+        input_path = "../data/exp1/result_EM_"+str((i+2)*100)+"/test"
+        TPlist = getResultExp1(input_path,N)
+        print("EM"+str((i+2)*100))
+        print(TPlist)
+        aveTP = sum(TPlist)/len(TPlist)
+        print("EM prec@100 = ",aveTP)
+
+        input_path = "../data/exp1/result_ML_"+str((i+2)*100)+"/test"
+        TPlist = getResultExp1(input_path,N)
+        print("ML"+str((i+2)*100))
+        print(TPlist)
+        aveTP = sum(TPlist)/len(TPlist)
+        print("ML prec@100 = ",aveTP)

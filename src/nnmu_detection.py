@@ -43,9 +43,7 @@ except:
 補助評価値行列の生成
 ユーザIDに関して降順
 @INPUT:
-    N : ユーザ数
-    M : アイテム数
-    number : 共通アイテム数
+    input_path
 @OUTPUT:
     Xaux : a auxiliary matrix of dimension N x M
 """
@@ -89,11 +87,9 @@ def getAuxiliaryMatrix(N,M,number):
 """
 MLのターゲット評価値行列の生成
 @INPUT:
-    N : ユーザ数
-    M : アイテム数
-    number : 共通アイテム数
+    input_path
 @OUTPUT:
-    Xtgt : an target matrix of dimension N x M for ML
+    Xtgt : an target matrix of dimension N x M
 """
 def getTargetMatrixML(N,M,number):
     count = 0
@@ -152,11 +148,9 @@ def getTargetMatrixML(N,M,number):
 """
 EMのターゲット評価値行列の生成
 @INPUT:
-    N : ユーザ数
-    M : アイテム数
-    number : 共通アイテム数
+    input_path
 @OUTPUT:
-    Xtgt : an target matrix of dimension N x M for EM
+    Xtgt : an target matrix of dimension N x M
 """
 def getTargetMatrixEM(N,M,number):
     count = 0
@@ -220,7 +214,7 @@ def getTargetMatrixEM(N,M,number):
     similarityMatrix : a similarity matrix of dimension M x M
 """
 def getItemItemSimilarity(Xaux):
-    # print(len(Xaux[0])) # アイテム数=300
+    # print(len(Xaux[0])) # アイテム数
     similarityMatrix = np.zeros([len(Xaux[0]), len(Xaux[0])])    # 0で類似度行列を初期化
     # print(len(Xaux))  # ユーザ数=500
     URave = np.zeros(len(Xaux))    # 0でユーザ毎の評価平均を格納する行列を初期化
@@ -336,11 +330,11 @@ def getTransition(W):
     yIndex : an user profile index for yL + yU of dimension 1 x M
 """
 def replaceUserProfile(y,flag):
-    global K_index  # 0行だとエラー
-    global U_index
-    global yL
-    global yU
-    global yIndex
+    # global K_index  # 0行だとエラー
+    # global U_index
+    # global yL
+    # global yU
+    # global yIndex
     # K_index = U_index = yL = yU = yIndex = np.array()
 
     K = 0   # ユーザの評価してるアイテム数
@@ -349,6 +343,40 @@ def replaceUserProfile(y,flag):
     # 初期化判定用フラグ
     K_flag = False
     U_flag = False
+
+    # K_index = list()
+    # U_index = list()
+    # yL = list()
+    # yU = list()
+    # K_count = U_count = 0
+    #
+    # for i in range(len(y)):
+    #     if 0 != y[i]:   # rated itemの処理
+    #         K_index.insert(K_count, i)   # rated itemのインデックスを保持
+    #         yL.insert(K_count,y[i])
+    #         K_count = K_count + 1
+    #     else:   # unrated itemの処理
+    #         U_index.insert(U_count, i)   # unrated itemのインデックスを保持
+    #         yU.insert(U_count,y[i])
+    #         U_count = U_count + 1
+    #
+    # if flag == 1:
+    #     return (K_index, U_index)
+    # else:
+    #     yIndex = np.zeros([1,K+U])   # アイテムのインデックス格納用
+    #     # print("yIndex=",yIndex)
+    #     # print("K_index=",K_index)
+    #     for i in range(len(y)):
+    #         if i < K:
+    #             yIndex[0][i] = K_index[i]
+    #         else:
+    #             if U != 1:    # アイテムが1つだけのときの処理
+    #                 yIndex[0][i] = U_index[i-K]
+    #             else:
+    #                 yIndex[0][i] = U_index
+    #
+    #     return (yL, yU, yIndex)
+
     for i in range(len(y)):
         if 0 != y[i]:   # rated itemの処理
             if(K_flag != True): # 1個目
@@ -400,10 +428,15 @@ def replaceTransition(P, y):
     try:
         K = len(K_index)
     except:
-        K = 0
+        K = 1
+        temp = K_index.copy()
+        print("K_index = ",K_index)
+        K_index = list()
+        K_index.insert(0,temp)
         print("K_index = ",K_index)
         print("U_index = ", U_index)
         print("K = ",K)
+
 
     # 代入処理
     tempPrep = np.zeros((len(P), len(P[0])))    # 行列の初期化
@@ -578,10 +611,15 @@ def calculateOptimizationProblem(Prep, userplofile, L):
     # print(optP)
     # print("optq =")
     # print(optq)
+    # print("len(optq) =", len(optq))
     # print("optA = ")
     # print(optA)
-    # print(opth)
+    # print("optb = ")
+    # print(optb)
+    # print("optG = ")
     # print(optG)
+    # print("opth = ")
+    # print(opth)
 
     # cvxoptの独自matrixクラス
     cvxoptP = 2*matrix(optP)
@@ -590,6 +628,19 @@ def calculateOptimizationProblem(Prep, userplofile, L):
     cvxopth = matrix(opth)
     cvxoptA = matrix(optA)
     cvxoptb = matrix(optb)
+
+    # print("cvxoptP =")
+    # print(cvxoptP)
+    # print("cvxoptq =")
+    # print(cvxoptq)
+    # print("cvxoptA =")
+    # print(cvxoptA)
+    # print("cvxoptb =")
+    # print(cvxoptb)
+    # print("cvxoptG =")
+    # print(cvxoptG)
+    # print("cvxopth =")
+    # print(cvxopth)
 
     sol = cvxopt.solvers.qp(cvxoptP,cvxoptq,cvxoptG,cvxopth,cvxoptA,cvxoptb)
     # print(sol["x"])
@@ -637,9 +688,8 @@ if __name__ == "__main__":
     # N = [[3.0, 3.5, 4.0]]
     # print(adjusted_cosine(X, Y, N))
 
-    args = sys.argv # 引数がリストで格納され，リストの最初の要素には実行ファイル名が入る
-
-    # number = 200    # 共通アイテム数
+    args = sys.argv
+    # number = 100    # 共通アイテム数
     number = args[1]    # 共通アイテム数
 
     N = int(500)    # ユーザ数
@@ -688,6 +738,221 @@ if __name__ == "__main__":
         print("ターゲット評価値行列Xtgtの取得")
         Xtgt_ML = getTargetMatrixML(N,M,number)
         Xtgt_EM = getTargetMatrixEM(N,M,number)
+
+
+        print("ターゲット評価値行列の各ユーザプロファイルの評価値が含むノイズの取得")
+        # 出力先のパス
+        output_path = "../data/exp1/result_ML_"+str(number)+"/test"+str(count)+".csv"
+        for i in range(N):
+            # print("ユーザプロファイルにもとづき遷移行列Pを変形")
+            Prep = replaceTransition(P, Xtgt_ML[i,:])
+            # print("Prep",i,"= ")
+            # print(Prep)
+            # print("各ユーザプロファイルの評価値が含むノイズを計算")
+            Xi = calculateOptimizationProblem(Prep, Xtgt_ML[i,:],L)
+            rho = getAverageNoise(Xi)
+            nnmuFlag = detectNNMU(rho,threshold=0.4)
+            # print("Xi = ", Xi)
+            # print("rho = ",rho)
+            # if nnmuFlag == True:
+            #     print("No.",i,"user is NNMU.")
+            # else:
+            #     print("No.",i,"user is not NNMU.")
+
+            out_data = str(i+1)+","+str(rho)
+            if(i == 0): # 1行目書き込み
+                f = open(output_path, "w")
+                i += 1
+                print(out_data, end="\n", file=f)
+            else:       # 2行目以降の追記
+                f = open(output_path, "a")
+                print(out_data, end="\n", file=f)
+
+        output_path = "../data/exp1/result_EM_"+str(number)+"/test"+str(count)+".csv"
+        for i in range(N):
+            # print("ユーザプロファイルにもとづき遷移行列Pを変形")
+            Prep = replaceTransition(P, Xtgt_EM[i,:])
+            # print("Prep",i,"= ")
+            # print(Prep)
+            # print("各ユーザプロファイルの評価値が含むノイズを計算")
+            Xi = calculateOptimizationProblem(Prep, Xtgt_EM[i,:],L)
+            rho = getAverageNoise(Xi)
+            nnmuFlag = detectNNMU(rho,threshold=0.4)
+            # print("Xi = ", Xi)
+            # print("rho = ",rho)
+            # if nnmuFlag == True:
+            #     print("No.",i,"user is NNMU.")
+            # else:
+            #     print("No.",i,"user is not NNMU.")
+
+            out_data = str(i+1)+","+str(rho)
+            if(i == 0): # 1行目書き込み
+                f = open(output_path, "w")
+                i += 1
+                print(out_data, end="\n", file=f)
+            else:       # 2行目以降の追記
+                f = open(output_path, "a")
+                print(out_data, end="\n", file=f)
+
+
+    args = sys.argv
+    # number = 100    # 共通アイテム数
+    number = args[2]    # 共通アイテム数
+
+    N = int(500)    # ユーザ数
+    M = int(number)    # アイテム数
+    # Xaux = np.zeros([N, M])    # N*M行列の初期化
+    # Xaux = np.random.rand(N,M)
+    # Xaux = np.array([[3.0, 5.0, 1.0, 0.0], [0.0, 2.0, 4.0, 0.0], [0.0, 1.0, 0.0, 2.0], [3.0, 4.0, 5.0, 2.0]])
+    # 実験1の補助評価値行列
+    print("補助評価値行列Xauxの取得")
+    Xaux = getAuxiliaryMatrix(N,M,number)
+
+    print("類似度行列の取得")
+    similarityMatrix = getItemItemSimilarity(Xaux)
+    # print("similarityMatrix = ")
+    # for i in range(len(similarityMatrix)):
+    #     print("No.",i)
+    #     print(similarityMatrix[i])
+
+    print("重み行列Wの取得")
+    W = getWeight(similarityMatrix)
+    # print("W = ")
+    # print(W)
+
+    print("遷移確率行列Pの取得")
+    P = getTransition(W)
+    # print("P = ")
+    # print(P)
+
+    D = np.zeros([M,M])
+    for i in range(M):
+        for j in range(M):
+            if i == j:
+                D[i][j] = sum(W[i,:])
+    # print("D = ")
+    # print(D)
+
+    print("ラプラシアン行列Lの取得")
+    L = D - W
+    # print("L = ")
+    # print(L)
+    # print(Xaux[0,:])
+
+    for count in range(10):
+        print("test count = ",count)
+
+        print("ターゲット評価値行列Xtgtの取得")
+        Xtgt_ML = getTargetMatrixML(N,M,number)
+        Xtgt_EM = getTargetMatrixEM(N,M,number)
+
+
+        print("ターゲット評価値行列の各ユーザプロファイルの評価値が含むノイズの取得")
+        # 出力先のパス
+        output_path = "../data/exp1/result_ML_"+str(number)+"/test"+str(count)+".csv"
+        for i in range(N):
+            # print("ユーザプロファイルにもとづき遷移行列Pを変形")
+            Prep = replaceTransition(P, Xtgt_ML[i,:])
+            # print("Prep",i,"= ")
+            # print(Prep)
+            # print("各ユーザプロファイルの評価値が含むノイズを計算")
+            Xi = calculateOptimizationProblem(Prep, Xtgt_ML[i,:],L)
+            rho = getAverageNoise(Xi)
+            nnmuFlag = detectNNMU(rho,threshold=0.4)
+            # print("Xi = ", Xi)
+            # print("rho = ",rho)
+            # if nnmuFlag == True:
+            #     print("No.",i,"user is NNMU.")
+            # else:
+            #     print("No.",i,"user is not NNMU.")
+
+            out_data = str(i+1)+","+str(rho)
+            if(i == 0): # 1行目書き込み
+                f = open(output_path, "w")
+                i += 1
+                print(out_data, end="\n", file=f)
+            else:       # 2行目以降の追記
+                f = open(output_path, "a")
+                print(out_data, end="\n", file=f)
+
+        output_path = "../data/exp1/result_EM_"+str(number)+"/test"+str(count)+".csv"
+        for i in range(N):
+            # print("ユーザプロファイルにもとづき遷移行列Pを変形")
+            Prep = replaceTransition(P, Xtgt_EM[i,:])
+            # print("Prep",i,"= ")
+            # print(Prep)
+            # print("各ユーザプロファイルの評価値が含むノイズを計算")
+            Xi = calculateOptimizationProblem(Prep, Xtgt_EM[i,:],L)
+            rho = getAverageNoise(Xi)
+            nnmuFlag = detectNNMU(rho,threshold=0.4)
+            # print("Xi = ", Xi)
+            # print("rho = ",rho)
+            # if nnmuFlag == True:
+            #     print("No.",i,"user is NNMU.")
+            # else:
+            #     print("No.",i,"user is not NNMU.")
+
+            out_data = str(i+1)+","+str(rho)
+            if(i == 0): # 1行目書き込み
+                f = open(output_path, "w")
+                i += 1
+                print(out_data, end="\n", file=f)
+            else:       # 2行目以降の追記
+                f = open(output_path, "a")
+                print(out_data, end="\n", file=f)
+
+
+    args = sys.argv
+    # number = 100    # 共通アイテム数
+    number = args[3]    # 共通アイテム数
+
+    N = int(500)    # ユーザ数
+    M = int(number)    # アイテム数
+    # Xaux = np.zeros([N, M])    # N*M行列の初期化
+    # Xaux = np.random.rand(N,M)
+    # Xaux = np.array([[3.0, 5.0, 1.0, 0.0], [0.0, 2.0, 4.0, 0.0], [0.0, 1.0, 0.0, 2.0], [3.0, 4.0, 5.0, 2.0]])
+    # 実験1の補助評価値行列
+    print("補助評価値行列Xauxの取得")
+    Xaux = getAuxiliaryMatrix(N,M,number)
+
+    print("類似度行列の取得")
+    similarityMatrix = getItemItemSimilarity(Xaux)
+    # print("similarityMatrix = ")
+    # for i in range(len(similarityMatrix)):
+    #     print("No.",i)
+    #     print(similarityMatrix[i])
+
+    print("重み行列Wの取得")
+    W = getWeight(similarityMatrix)
+    # print("W = ")
+    # print(W)
+
+    print("遷移確率行列Pの取得")
+    P = getTransition(W)
+    # print("P = ")
+    # print(P)
+
+    D = np.zeros([M,M])
+    for i in range(M):
+        for j in range(M):
+            if i == j:
+                D[i][j] = sum(W[i,:])
+    # print("D = ")
+    # print(D)
+
+    print("ラプラシアン行列Lの取得")
+    L = D - W
+    # print("L = ")
+    # print(L)
+    # print(Xaux[0,:])
+
+    for count in range(10):
+        print("test count = ",count)
+
+        print("ターゲット評価値行列Xtgtの取得")
+        Xtgt_ML = getTargetMatrixML(N,M,number)
+        Xtgt_EM = getTargetMatrixEM(N,M,number)
+
 
         print("ターゲット評価値行列の各ユーザプロファイルの評価値が含むノイズの取得")
         # 出力先のパス
