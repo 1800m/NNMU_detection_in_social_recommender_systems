@@ -34,11 +34,6 @@ try:
 except:
     print("This implementation requires the cvxopt module.")
     exit(0)
-from math import sqrt
-from cvxopt import matrix
-from cvxopt.blas import dot
-from cvxopt.solvers import qp
-import pylab
 ###############################################################################
 
 
@@ -52,39 +47,39 @@ import pylab
     Xaux : a auxiliary matrix of dimension N x M
 """
 def getAuxiliaryMatrix(N,M,number):
-    # movieLensXaux = list()
-    # # MovieLensユーザデータ読み込み
-    # index = 0   # インデックス用変数
-    # input_path = "../data/exp1/auxiliary/ML_Auxiliary_"+str(N)+"x"+str(M)+".csv"
-    # for line in codecs.open(input_path, 'r', 'utf-8'):
-    #     # ,でスプリット
-    #     # [0]：UserID
-    #     # [1]：ItemID
-    #     # [2]：Rating
-    #     # [3]：Timestamp
-    #     # [4]：Co-User Index
-    #     # [5]：UserID
-    #     # [6]：Co-Item Index
-    #     # [7]：ItemID
-    #     line_split = line.split(",")
-    #     movieLensXaux.insert(index, (line_split[0],line_split[1],line_split[2],line_split[3],line_split[4],line_split[5],line_split[6],line_split[7].rstrip("\n")))
-    #     index = index + 1
+    movieLensXaux = list()
+    # MovieLensユーザデータ読み込み
+    index = 0   # インデックス用変数
+    input_path = "../data/exp1/auxiliary/ML_Auxiliary_"+str(N)+"x"+str(M)+".csv"
+    for line in codecs.open(input_path, 'r', 'utf-8'):
+        # ,でスプリット
+        # [0]：UserID
+        # [1]：ItemID
+        # [2]：Rating
+        # [3]：Timestamp
+        # [4]：Co-User Index
+        # [5]：UserID
+        # [6]：Co-Item Index
+        # [7]：ItemID
+        line_split = line.split(",")
+        movieLensXaux.insert(index, (line_split[0],line_split[1],line_split[2],line_split[3],line_split[4],line_split[5],line_split[6],line_split[7].rstrip("\n")))
+        index = index + 1
 
-    auxiliaryMatrix = np.ones([N,M])    # 0で補助評価値行列を初期化
+    auxiliaryMatrix = np.zeros([N,M])    # 0で補助評価値行列を初期化
     # 補助評価値行列の生成
-    # for i in range(len(movieLensXaux)):
-    #     auxiliaryMatrix[int(movieLensXaux[i][4])][int(movieLensXaux[i][6])] = movieLensXaux[i][2]
-    #
-    # output_path = "../data/exp1/auxiliary/Xaux"+str(number)+".csv"
-    # for i in range(len(auxiliaryMatrix)):
-    #     out_data = auxiliaryMatrix[i]
-    #     if(i == 0): # 1行目書き込み
-    #         f = open(output_path, "w")
-    #         i += 1
-    #         print(out_data, end="\n", file=f)
-    #     else:       # 2行目以降の追記
-    #         f = open(output_path, "a")
-    #         print(out_data, end="\n", file=f)
+    for i in range(len(movieLensXaux)):
+        auxiliaryMatrix[int(movieLensXaux[i][4])][int(movieLensXaux[i][6])] = movieLensXaux[i][2]
+
+    output_path = "../data/exp1/auxiliary/Xaux"+str(number)+".csv"
+    for i in range(len(auxiliaryMatrix)):
+        out_data = auxiliaryMatrix[i]
+        if(i == 0): # 1行目書き込み
+            f = open(output_path, "w")
+            i += 1
+            print(out_data, end="\n", file=f)
+        else:       # 2行目以降の追記
+            f = open(output_path, "a")
+            print(out_data, end="\n", file=f)
 
     return auxiliaryMatrix
 
@@ -96,55 +91,55 @@ MLのターゲット評価値行列の生成
     Xtgt : an target matrix of dimension N x M
 """
 def getTargetMatrixML(N,M,number,count):
-    # movieLensXtgt = list()   # 3結合の対応表を保持
-    #
-    # index = 0   # インデックス用変数
-    # input_path = "../data/exp1/test_ML_"+str(number)+"/userData"+str(count)+".csv"
-    # for line in codecs.open(input_path, 'r', 'utf-8'):
-    #     # ,でスプリット
-    #     # [0]：UserID
-    #     # [1]：ItemID
-    #     # [2]：Rating
-    #     # [3]：Timestamp
-    #     # [4]：Co-User Index
-    #     # [5]：UserID
-    #     # [6]：Co-Item Index
-    #     # [7]：ItemID
-    #     line_split = line.split(",")
-    #     movieLensXtgt.insert(index, (line_split[0],line_split[1],line_split[2],line_split[3],line_split[4],line_split[5],line_split[6],line_split[7].rstrip("\n")))
-    #     index = index + 1
+    movieLensXtgt = list()   # 3結合の対応表を保持
 
-    targetMatrix = np.ones([N,M])    # 0でターゲット評価値行列を初期化
+    index = 0   # インデックス用変数
+    input_path = "../data/exp1/test_ML_"+str(number)+"/userData"+str(count)+".csv"
+    for line in codecs.open(input_path, 'r', 'utf-8'):
+        # ,でスプリット
+        # [0]：UserID
+        # [1]：ItemID
+        # [2]：Rating
+        # [3]：Timestamp
+        # [4]：Co-User Index
+        # [5]：UserID
+        # [6]：Co-Item Index
+        # [7]：ItemID
+        line_split = line.split(",")
+        movieLensXtgt.insert(index, (line_split[0],line_split[1],line_split[2],line_split[3],line_split[4],line_split[5],line_split[6],line_split[7].rstrip("\n")))
+        index = index + 1
 
-    # # 補助評価値行列の生成
-    # # ここで，100人にノイズを加える
-    # for i in range(len(movieLensXtgt)):
-    #     if i < N-100: # noise-free
-    #         targetMatrix[int(movieLensXtgt[i][4])][int(movieLensXtgt[i][6])] = movieLensXtgt[i][2]
-    #     else:   # NNMU
-    #         if movieLensXtgt[i][2] != 0:
-    #             while True: # ノイズが範囲内になるまで繰り返す
-    #                 noise = random.randint(-4,4)
-    #                 if noise != 0:
-    #                     noisy_rating = int(movieLensXtgt[i][2]) + noise    # -4〜4の整数でノイズをのせる
-    #                     # 評価値の範囲内か判定
-    #                     if noisy_rating >= 1:
-    #                         if noisy_rating <= 5:
-    #                             targetMatrix[int(movieLensXtgt[i][4])][int(movieLensXtgt[i][6])] = noisy_rating
-    #                             break
-    #         else:
-    #             targetMatrix[int(movieLensXtgt[i][4])][int(movieLensXtgt[i][6])] = 0
-    #
-    # output_path = "../data/exp1/result_ML_"+str(number)+"/Xtgt_ML"+str(count)+".csv"
-    # for i in range(len(targetMatrix)):
-    #     out_data = targetMatrix[i]
-    #     if(i == 0): # 1行目書き込み
-    #         f = open(output_path, "w")
-    #         i += 1
-    #         print(out_data, end="\n", file=f)
-    #     else:       # 2行目以降の追記
-    #         f = open(output_path, "a")
-    #         print(out_data, end="\n", file=f)
+    targetMatrix = np.zeros([N,M])    # 0でターゲット評価値行列を初期化
+
+    # 補助評価値行列の生成
+    # ここで，100人にノイズを加える
+    for i in range(len(movieLensXtgt)):
+        if i < N-100: # noise-free
+            targetMatrix[int(movieLensXtgt[i][4])][int(movieLensXtgt[i][6])] = movieLensXtgt[i][2]
+        else:   # NNMU
+            if movieLensXtgt[i][2] != 0:
+                while True: # ノイズが範囲内になるまで繰り返す
+                    noise = random.randint(-4,4)
+                    if noise != 0:
+                        noisy_rating = int(movieLensXtgt[i][2]) + noise    # -4〜4の整数でノイズをのせる
+                        # 評価値の範囲内か判定
+                        if noisy_rating >= 1:
+                            if noisy_rating <= 5:
+                                targetMatrix[int(movieLensXtgt[i][4])][int(movieLensXtgt[i][6])] = noisy_rating
+                                break
+            else:
+                targetMatrix[int(movieLensXtgt[i][4])][int(movieLensXtgt[i][6])] = 0
+
+    output_path = "../data/exp1/result_ML_"+str(number)+"/Xtgt_ML"+str(count)+".csv"
+    for i in range(len(targetMatrix)):
+        out_data = targetMatrix[i]
+        if(i == 0): # 1行目書き込み
+            f = open(output_path, "w")
+            i += 1
+            print(out_data, end="\n", file=f)
+        else:       # 2行目以降の追記
+            f = open(output_path, "a")
+            print(out_data, end="\n", file=f)
 
     return targetMatrix
 
@@ -156,55 +151,55 @@ EMのターゲット評価値行列の生成
     Xtgt : an target matrix of dimension N x M
 """
 def getTargetMatrixEM(N,M,number,count):
-    # eachMovieXtgt = list()   # 3結合の対応表を保持
-    #
-    # index = 0   # インデックス用変数
-    # input_path = "../data/exp1/test_EM_"+str(number)+"/userData"+str(count)+".csv"
-    # for line in codecs.open(input_path, 'r', 'utf-8'):
-    #     # ,でスプリット
-    #     # [0]：UserID
-    #     # [1]：ItemID
-    #     # [2]：Rating
-    #     # [3]：Timestamp
-    #     # [4]：Co-User Index
-    #     # [5]：UserID
-    #     # [6]：Co-Item Index
-    #     # [7]：ItemID
-    #     line_split = line.split(",")
-    #     eachMovieXtgt.insert(index, (line_split[0],line_split[1],line_split[2],line_split[3],line_split[4],line_split[5],line_split[6],line_split[7].rstrip("\n")))
-    #     index = index + 1
-    #
-    targetMatrix = np.ones([N,M])    # 0でターゲット評価値行列を初期化
+    eachMovieXtgt = list()   # 3結合の対応表を保持
 
-    # # 補助評価値行列の生成
-    # # ここで，100人にノイズを加える
-    # for i in range(len(eachMovieXtgt)):
-    #     if i < N-100: # noise-free
-    #         targetMatrix[int(eachMovieXtgt[i][4])][int(eachMovieXtgt[i][6])] = float(eachMovieXtgt[i][2])*5
-    #     else:   # NNMU
-    #         if eachMovieXtgt[i][2] != 0:
-    #             while True: # ノイズが範囲内になるまで繰り返す
-    #                 noise = random.randint(-4,4)
-    #                 if noise != 0:
-    #                     noisy_rating = float(eachMovieXtgt[i][2])*5 + noise    # -4〜4の整数でノイズをのせる
-    #                     # 評価値の範囲内か判定
-    #                     if noisy_rating >= 1:
-    #                         if noisy_rating <= 5:
-    #                             targetMatrix[int(eachMovieXtgt[i][4])][int(eachMovieXtgt[i][6])] = noisy_rating
-    #                             break
-    #         else:
-    #             targetMatrix[int(eachMovieXtgt[i][4])][int(eachMovieXtgt[i][6])] = 0
-    #
-    # output_path = "../data/exp1/result_EM_"+str(number)+"/Xtgt_EM"+str(count)+".csv"
-    # for i in range(len(targetMatrix)):
-    #     out_data = targetMatrix[i]
-    #     if(i == 0): # 1行目書き込み
-    #         f = open(output_path, "w")
-    #         i += 1
-    #         print(out_data, end="\n", file=f)
-    #     else:       # 2行目以降の追記
-    #         f = open(output_path, "a")
-    #         print(out_data, end="\n", file=f)
+    index = 0   # インデックス用変数
+    input_path = "../data/exp1/test_EM_"+str(number)+"/userData"+str(count)+".csv"
+    for line in codecs.open(input_path, 'r', 'utf-8'):
+        # ,でスプリット
+        # [0]：UserID
+        # [1]：ItemID
+        # [2]：Rating
+        # [3]：Timestamp
+        # [4]：Co-User Index
+        # [5]：UserID
+        # [6]：Co-Item Index
+        # [7]：ItemID
+        line_split = line.split(",")
+        eachMovieXtgt.insert(index, (line_split[0],line_split[1],line_split[2],line_split[3],line_split[4],line_split[5],line_split[6],line_split[7].rstrip("\n")))
+        index = index + 1
+
+    targetMatrix = np.zeros([N,M])    # 0でターゲット評価値行列を初期化
+
+    # 補助評価値行列の生成
+    # ここで，100人にノイズを加える
+    for i in range(len(eachMovieXtgt)):
+        if i < N-100: # noise-free
+            targetMatrix[int(eachMovieXtgt[i][4])][int(eachMovieXtgt[i][6])] = float(eachMovieXtgt[i][2])*5
+        else:   # NNMU
+            if eachMovieXtgt[i][2] != 0:
+                while True: # ノイズが範囲内になるまで繰り返す
+                    noise = random.randint(-4,4)
+                    if noise != 0:
+                        noisy_rating = float(eachMovieXtgt[i][2])*5 + noise    # -4〜4の整数でノイズをのせる
+                        # 評価値の範囲内か判定
+                        if noisy_rating >= 1:
+                            if noisy_rating <= 5:
+                                targetMatrix[int(eachMovieXtgt[i][4])][int(eachMovieXtgt[i][6])] = noisy_rating
+                                break
+            else:
+                targetMatrix[int(eachMovieXtgt[i][4])][int(eachMovieXtgt[i][6])] = 0
+
+    output_path = "../data/exp1/result_EM_"+str(number)+"/Xtgt_EM"+str(count)+".csv"
+    for i in range(len(targetMatrix)):
+        out_data = targetMatrix[i]
+        if(i == 0): # 1行目書き込み
+            f = open(output_path, "w")
+            i += 1
+            print(out_data, end="\n", file=f)
+        else:       # 2行目以降の追記
+            f = open(output_path, "a")
+            print(out_data, end="\n", file=f)
 
     return targetMatrix
 
@@ -232,14 +227,6 @@ def getItemItemSimilarity(Xaux):
     # アイテム間類似度の対称行列を生成
     for i in range(len(similarityMatrix)):
         for j in range(len(similarityMatrix[i])):
-            # print("ij = ", i,j)
-            # if i == 298:
-            #     if j == 221:
-            #         print("ij =",i,j)
-            #         print("item1 = ",Xaux[:,i])
-            #         print("item2 = ",Xaux[:,j])
-            #         print("URave = ",URave)
-
             if i == j:  # 同じアイテムへの類似度より１
                 similarityMatrix[i][j] = 1
                 # similarityMatrix[i][j] = adjusted_cosine(Xaux[:,i], Xaux[:,j], URave)
@@ -247,7 +234,7 @@ def getItemItemSimilarity(Xaux):
             else:
                 similarityMatrix[i][j] = adjusted_cosine(Xaux[:,i], Xaux[:,j], URave)
                 if similarityMatrix[i][j] == 10:
-                    print("similarityMatrix[",i,"][",j,"]はNaN値です")
+                    print("similarityMatrix["+str(i)+"]["+str(j)+"] is NaN")
                     similarityMatrix[i][j] = -1
                 similarityMatrix[j][i] = similarityMatrix[i][j]
     return similarityMatrix
@@ -332,12 +319,11 @@ def getTransition(W):
     yIndex : an user profile index for yL + yU of dimension 1 x M
 """
 def replaceUserProfile(y,flag):
-    global K_index  # 0行だとエラー
+    # global K_index  # 0行だとエラー
+    # global yL
+    # global yIndex
     global U_index
-    global yL
     global yU
-    global yIndex
-    # K_index = U_index = yL = yU = yIndex = np.array()
 
     K = 0   # ユーザの評価してるアイテム数
     U = 0   # ユーザが評価してないアイテム数
@@ -345,39 +331,6 @@ def replaceUserProfile(y,flag):
     # 初期化判定用フラグ
     K_flag = False
     U_flag = False
-
-    # K_index = list()
-    # U_index = list()
-    # yL = list()
-    # yU = list()
-    # K_count = U_count = 0
-    #
-    # for i in range(len(y)):
-    #     if 0 != y[i]:   # rated itemの処理
-    #         K_index.insert(K_count, i)   # rated itemのインデックスを保持
-    #         yL.insert(K_count,y[i])
-    #         K_count = K_count + 1
-    #     else:   # unrated itemの処理
-    #         U_index.insert(U_count, i)   # unrated itemのインデックスを保持
-    #         yU.insert(U_count,y[i])
-    #         U_count = U_count + 1
-    #
-    # if flag == 1:
-    #     return (K_index, U_index)
-    # else:
-    #     yIndex = np.zeros([1,K+U])   # アイテムのインデックス格納用
-    #     # print("yIndex=",yIndex)
-    #     # print("K_index=",K_index)
-    #     for i in range(len(y)):
-    #         if i < K:
-    #             yIndex[0][i] = K_index[i]
-    #         else:
-    #             if U != 1:    # アイテムが1つだけのときの処理
-    #                 yIndex[0][i] = U_index[i-K]
-    #             else:
-    #                 yIndex[0][i] = U_index
-    #
-    #     return (yL, yU, yIndex)
 
     for i in range(len(y)):
         if 0 != y[i]:   # rated itemの処理
@@ -420,6 +373,7 @@ def replaceUserProfile(y,flag):
 ワンステップ遷移確率行列の置き換えを行う
 @INPUT:
     P : a transition matrix of dimension M x M
+    y : a test userplofile of dimension M x 1
 @OUTPUT:
     Prep : a replaced transition matrix of dimension M x M
 """
@@ -485,6 +439,7 @@ def replaceTransition(P, y):
                 # print("tempPrep[:,U_index[j - K]] = ",tempPrep[:,U_index])
         # print(Prep)
 
+    # 確認用
     # yrep = np.zeros(len(y))
     # for i in range(len(y)):
     #     if i < len(K_index):
@@ -581,7 +536,7 @@ def calculateOptimizationProblem(Prep, userplofile, L):
     IQinvR = (np.linalg.inv(np.identity(M-K)-Q)).dot(R)
     IQinvRyL = IQinvR.dot(yL.T)
     print("IQinvR =",IQinvR)
-    print("yL =",yL)
+    print("yL =",yL.T)
     # print("IQinvRyL =",IQinvRyL)
     print("yU =",IQinvRyL)
     for i in range(M):
@@ -671,10 +626,10 @@ def calculateOptimizationProblem(Prep, userplofile, L):
     print("cvxopth =")
     print(cvxopth)
 
-    opts = {'maxiters' : 200}
+    opts = {'maxiters' : 50}    # 反復数デフォルト100
     sol = cvxopt.solvers.qp(cvxoptP,cvxoptq,cvxoptG,cvxopth,cvxoptA,cvxoptb,options = opts)
-    print("sol[x]\n",sol["x"])
-    print("sol[primal objective]\n",sol["primal objective"])
+    # print("sol[x]\n",sol["x"])    # 各評価値のノイズ
+    # print("sol[primal objective]\n",sol["primal objective"])  # 目的関数
     Xi = sol["x"]
 
     return Xi
@@ -717,17 +672,9 @@ def detectNNMU(rho, threshold):
 
 # メイン関数
 if __name__ == "__main__":
-    # X = [[1.0, 5.0, 4.0]]
-    # Y = [[2.0, 5.0, 5.0]]
-    # N = [[3.0, 3.5, 4.0]]
-    # print(adjusted_cosine(X, Y, N))
-
-#################################################
-# 300
-#################################################
     args = sys.argv
-    # number = 100    # 共通アイテム数
-    number = args[1]    # 共通アイテム数
+    number = 4    # 共通アイテム数
+    # number = args[1]    # 共通アイテム数
 
     # N = int(500)    # ユーザ数
     # M = int(number)    # アイテム数
@@ -737,29 +684,30 @@ if __name__ == "__main__":
     # Xaux = np.random.rand(N,M)
     Xaux = np.array([[3.0, 5.0, 1.0, 0.0], [0.0, 2.0, 4.0, 0.0], [0.0, 1.0, 0.0, 2.0], [3.0, 4.0, 5.0, 2.0]])
     # 実験1の補助評価値行列
-    print("補助評価値行列Xauxの取得")
+    # print("補助評価値行列Xauxの取得")
     # Xaux = getAuxiliaryMatrix(N,M,number)
     # print("Xaux = ")
     # for i in range(len(Xaux)):
     #     print(Xaux[i])
 
-    print("類似度行列の取得")
+    # print("類似度行列の取得")
     similarityMatrix = getItemItemSimilarity(Xaux)
     # print("similarityMatrix = ")
     # for i in range(len(similarityMatrix)):
     #     print(similarityMatrix[i])
 
-    print("重み行列Wの取得")
+    # print("重み行列Wの取得")
     W = getWeight(similarityMatrix)
-    # print("W = ")
+    # print("重み行列W = ")
     # for i in range(len(W)):
     #     print(W[i])
 
-    print("遷移確率行列Pの取得")
+    # print("遷移行列Pの取得")
     P = getTransition(W)
-    print("P = ")
+    print("遷移行列P = ")
     for i in range(len(P)):
         print(P[i])
+    print()
 
     D = np.zeros([M,M])
     for i in range(M):
@@ -772,39 +720,39 @@ if __name__ == "__main__":
 
     # print("遷移確率行列Pの取得")
     # P = np.linalg.inv(D).dot(W)
-    # print("P = ")
+    # print("遷移行列P = ")
     # for i in range(len(P)):
     #     print(P[i])
 
 
-    print("ラプラシアン行列Lの取得")
+    # print("ラプラシアン行列Lの取得")
     L = D - W
     # print("L = ")
     # for i in range(len(W)):
     #     print(W[i])
 
-    print("ターゲット評価値行列Xtgtの取得")
+    # print("ターゲット評価値行列Xtgtの取得")
     # Xtgt_ML = getTargetMatrixML(N,M,number,count=0)
     # Xtgt_EM = getTargetMatrixEM(N,M,number,count=0)
 
-    # Xtgt_ML = np.array([[3.0, 5.0, 1.0, 0.0], [0.0, 2.0, 4.0, 0.0], [0.0, 1.0, 0.0, 2.0], [3.0, 4.0, 5.0, 2.0]])
     Xtgt_ML = np.array([[3.0, 5.0, 1.0, 0.0], [0.0, 2.0, 4.0, 0.0], [0.0, 1.0, 0.0, 2.0], [3.0, 4.0, 5.0, 2.0]])
 
     print("ターゲット評価値行列の各ユーザプロファイルの評価値が含むノイズの取得")
     # 出力先のパス
     # output_path = "../data/exp1/result_ML_"+str(number)+"/test"+str(count)+".csv"
     for i in range(len(Xtgt_ML)):
+        print("user["+str(i)+"]")
         print("Xtgt_ML["+str(i)+",:] =",Xtgt_ML[i,:])
         # print("ユーザプロファイルにもとづき遷移行列Pを変形")
         Prep = replaceTransition(P, Xtgt_ML[i,:])
-        print("Prep",i,"= ")
+        print("Prep =")
         print(Prep)
-        # print("各ユーザプロファイルの評価値が含むノイズを計算")
         Xi = calculateOptimizationProblem(Prep, Xtgt_ML[i,:],L)
         rho = getAverageNoise(Xi)
-        nnmuFlag = detectNNMU(rho,threshold=0.4)
+        nnmuFlag = detectNNMU(rho,threshold=0.3)
         # print("Xi = ", Xi)
         print("rho = ",rho)
+        print()
         # if nnmuFlag == True:
         #     print("No.",i,"user is NNMU.")
         # else:
