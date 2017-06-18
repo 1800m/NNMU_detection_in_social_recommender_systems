@@ -15,7 +15,7 @@ data/MovieLens/mku.sh
 
 *.base
 
-data/つかえない/movieLensXaux500x300.csv
+data/つかえない/*
 
 *.test
 
@@ -23,6 +23,6 @@ data/MovieLens/u.genre
 
 src/database.db
 
-data/つかえない/movieLensXaux500x300item.csv
-
 data/MovieLens/u.occupation
+
+src/sql_for_target.py
