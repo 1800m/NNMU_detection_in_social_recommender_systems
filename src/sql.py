@@ -395,6 +395,36 @@ def getCoList_ML_Xaux():
 #             f = open(output_path, "a")
 #             print(out_data, end="\n", file=f)
 
+
+
+"""
+EachMovieとMovieLensの全共通アイテムと被評価回数
+[0]:EM ItemID
+[1]:ML ItemID
+[2]:EM ItemID Rating Count
+[3]:ML ItemID Rating Count
+"""
+def createMatchIdCountAll():
+    deleteTable("MatchIdCountAll")
+    create_table = "create table MatchIdCountAll (EM_ItemID int, ML_ItemID int, EM_RatingCount int, ML_RatingCount int)"
+    c.execute(create_table)
+
+    input_path = '../data/matchID_and_Count_All.csv'
+    # MovieLensのデータ読み込み
+    for line in codecs.open(input_path, 'r', 'utf-8'):
+        # ,でスプリット
+        # [0]：UserID
+        # [1]：ItemID
+        # [2]：Rating
+        # [3]：Timestamp
+        line_split = line.split(",")
+        insert_sql = "insert into MatchIdCountAll (EM_ItemID, ML_ItemID, EM_RatingCount, ML_RatingCount) values (?, ?, ?, ?)"
+        insert_data = (line_split[0],line_split[1],line_split[2], line_split[3].rstrip("\n"))
+        c.execute(insert_sql, insert_data)
+
+    conn.commit()   # commit()しないと変更がかからない
+
+
 """
 メイン関数
 """
@@ -417,7 +447,7 @@ if __name__ == "__main__":
     # compareTitleだと何か重複が発生しているため，txtデータからマッチングを作成したmatchID.csvより，読み込む
     # compareTitle()  # MatchID
     # readMatchID()   # MatchID
-    createMatchIdTop300()   # MatchIdTop300
+    # createMatchIdTop300()   # MatchIdTop300
 
     # deleteTable("MovieLensData_Item300")
     # createMovieLensData_Item300() # MovieLensData_Item300
@@ -441,6 +471,6 @@ if __name__ == "__main__":
     # for row in c.execute(select_sql):
     #     print(row)
 
-
+    createMatchIdCountAll()
 
     conn.close()

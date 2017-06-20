@@ -32,7 +32,24 @@ from cvxopt import matrix
 from cvxopt.blas import dot
 from cvxopt.solvers import qp
 import pylab
+import sqlite3
 
+"""
+データベースとの接続
+"""
+def connectDB(dbname):
+    global conn
+    global c
+    # データベースに接続
+    conn = sqlite3.connect(dbname)  # Connectionオブジェクトが作成
+    c = conn.cursor()   # SQL文を実行するには，ConnectionオブジェクトからさらにCursorオブジェクトを作成
+
+"""
+テーブルの削除
+"""
+def deleteTable(tbname):
+    sql = "drop table "+tbname
+    c.execute(sql)
 
 """
 補助評価値行列の生成
@@ -82,6 +99,86 @@ def getAuxiliaryMatrix(N,M,number):
     return auxiliaryMatrix
 
 
+"""
+EachMovieTitleをMovieLensと部分一致させた比較結果(MatchID.csv)を読み込みテーブルに格納
+MatchID
+[0]:EachMovie ItemID
+[1]:MovieLens ItemID
+"""
+def readMatchID():
+    deleteTable("MatchID")
+    create_table = "create table MatchID (EM_ItemID int, ML_ItemID int)"
+    c.execute(create_table)
+
+    input_path = ""
+    sql = ""
+    index = 0   # インデックス用変数
+    for line in execute():
+        # ,でスプリット
+        # [0]：EM_ItemID
+        # [1]：ML_ItemID
+        line_split = line.split(",")
+        insert_sql = "insert into MatchID (EM_ItemID, ML_ItemID) values (?, ?)"
+        insert_data = (line_split[0],line_split[1].rstrip("\n"))
+        c.execute(insert_sql, insert_data)
+        index = index + 1
+    conn.commit()   # commit()しないと変更がかからない
+
+"""
+EachMovieTitleをMovieLensの共通アイテム数300でのMovieLensの全ユーザデータ
+[0]:UserID
+[1]:ItemID
+[2]:Rating
+[3]:Timestamp
+"""
+def createMovieLensData_Item300():
+    create_table = "create table MovieLensData_Item300 (UserID int, ItemID int, Rating int, Timestamp int)"
+    c.execute(create_table)
+
+    input_path = '../data/exp1/movieLensUserData300.csv'
+    # MovieLensのデータ読み込み
+    for line in codecs.open(input_path, 'r', 'utf-8'):
+        # ,でスプリット
+        # [0]：UserID
+        # [1]：ItemID
+        # [2]：Rating
+        # [3]：Timestamp
+        line_split = line.split(",")
+        insert_sql = "insert into MovieLensData_Item300 (UserID, ItemID, Rating, Timestamp) values (?, ?, ?, ?)"
+        insert_data = (line_split[0],line_split[1],line_split[2], line_split[3].rstrip("\n"))
+        c.execute(insert_sql, insert_data)
+
+    conn.commit()   # commit()しないと変更がかからない
+
+
+
+
+"""
+EachMovieTitleをMovieLensの共通アイテム数300でのMovieLensの全ユーザデータ
+[0]:UserID
+[1]:ItemID
+[2]:Rating
+[3]:Timestamp
+"""
+def createMovieLensData_Item300():
+    create_table = "create table MovieLensData_Item300 (UserID int, ItemID int, Rating int, Timestamp int)"
+    c.execute(create_table)
+
+    input_path = '../data/exp1/movieLensUserData300.csv'
+    # MovieLensのデータ読み込み
+    for line in codecs.open(input_path, 'r', 'utf-8'):
+        # ,でスプリット
+        # [0]：UserID
+        # [1]：ItemID
+        # [2]：Rating
+        # [3]：Timestamp
+        line_split = line.split(",")
+        insert_sql = "insert into MovieLensData_Item300 (UserID, ItemID, Rating, Timestamp) values (?, ?, ?, ?)"
+        insert_data = (line_split[0],line_split[1],line_split[2], line_split[3].rstrip("\n"))
+        c.execute(insert_sql, insert_data)
+
+    conn.commit()   # commit()しないと変更がかからない
+
 
 if __name__ == "__main__":
     # Xaux = getAuxiliaryMatrix(500, 300, 300)
@@ -91,54 +188,75 @@ if __name__ == "__main__":
     # print(len(Xaux))
     # print(len(np.where(Xaux != 0)[0]))
 
+    # # Problem data.
+    # n = 4
+    # S = matrix([[ 4e-2,  6e-3, -4e-3,    0.0 ],
+    #             [ 6e-3,  1e-2,  0.0,     0.0 ],
+    #             [-4e-3,  0.0,   2.5e-3,  0.0 ],
+    #             [ 0.0,   0.0,   0.0,     0.0 ]])
+    # pbar = matrix([.12, .10, .07, .03])
+    # G = matrix(0.0, (n,n))
+    # G[::n+1] = -1.0
+    # h = matrix(0.0, (n,1))
+    # A = matrix(1.0, (1,n))
+    # b = matrix(1.0)
+    # print(G)
+    #
+    # # Compute trade-off.
+    # N = 100
+    # mus = [ 10**(5.0*t/N-1.0) for t in range(N) ]
+    # portfolios = [ qp(mu*S, -pbar, G, h, A, b)['x'] for mu in mus ]
+    # returns = [ dot(pbar,x) for x in portfolios ]
+    # risks = [ sqrt(dot(x, S*x)) for x in portfolios ]
+    #
+    # # Plot trade-off curve and optimal allocations.
+    # pylab.figure(1, facecolor='w')
+    # pylab.plot(risks, returns)
+    # pylab.xlabel('standard deviation')
+    # pylab.ylabel('expected return')
+    # pylab.axis([0, 0.2, 0, 0.15])
+    # pylab.title('Risk-return trade-off curve (fig 4.12)')
+    # pylab.yticks([0.00, 0.05, 0.10, 0.15])
+    #
+    # pylab.figure(2, facecolor='w')
+    # c1 = [ x[0] for x in portfolios ]
+    # c2 = [ x[0] + x[1] for x in portfolios ]
+    # c3 = [ x[0] + x[1] + x[2] for x in portfolios ]
+    # c4 = [ x[0] + x[1] + x[2] + x[3] for x in portfolios ]
+    # pylab.fill(risks + [.20], c1 + [0.0], '#F0F0F0')
+    # pylab.fill(risks[-1::-1] + risks, c2[-1::-1] + c1, facecolor = '#D0D0D0')
+    # pylab.fill(risks[-1::-1] + risks, c3[-1::-1] + c2, facecolor = '#F0F0F0')
+    # pylab.fill(risks[-1::-1] + risks, c4[-1::-1] + c3, facecolor = '#D0D0D0')
+    # pylab.axis([0.0, 0.2, 0.0, 1.0])
+    # pylab.xlabel('standard deviation')
+    # pylab.ylabel('allocation')
+    # pylab.text(.15,.5,'x1')
+    # pylab.text(.10,.7,'x2')
+    # pylab.text(.05,.7,'x3')
+    # pylab.text(.01,.7,'x4')
+    # pylab.title('Optimal allocations (fig 4.12)')
+    # pylab.show()
 
 
 
-    # Problem data.
-    n = 4
-    S = matrix([[ 4e-2,  6e-3, -4e-3,    0.0 ],
-                [ 6e-3,  1e-2,  0.0,     0.0 ],
-                [-4e-3,  0.0,   2.5e-3,  0.0 ],
-                [ 0.0,   0.0,   0.0,     0.0 ]])
-    pbar = matrix([.12, .10, .07, .03])
-    G = matrix(0.0, (n,n))
-    G[::n+1] = -1.0
-    h = matrix(0.0, (n,1))
-    A = matrix(1.0, (1,n))
-    b = matrix(1.0)
-    print(G)
+    # 重複検証
+    deleteTable("MatchIdTop100")
+    create_table = "create table MatchIdTop100 (EM_ItemID int, ML_ItemID int, EM_Count int, ML_Count int)"
+    c.execute(create_table)
 
-    # Compute trade-off.
-    N = 100
-    mus = [ 10**(5.0*t/N-1.0) for t in range(N) ]
-    portfolios = [ qp(mu*S, -pbar, G, h, A, b)['x'] for mu in mus ]
-    returns = [ dot(pbar,x) for x in portfolios ]
-    risks = [ sqrt(dot(x, S*x)) for x in portfolios ]
+    input_path = '../data/exp1/matchIdTop100.csv'
+    # MovieLensのデータ読み込み
+    index = 0
 
-    # Plot trade-off curve and optimal allocations.
-    pylab.figure(1, facecolor='w')
-    pylab.plot(risks, returns)
-    pylab.xlabel('standard deviation')
-    pylab.ylabel('expected return')
-    pylab.axis([0, 0.2, 0, 0.15])
-    pylab.title('Risk-return trade-off curve (fig 4.12)')
-    pylab.yticks([0.00, 0.05, 0.10, 0.15])
-
-    pylab.figure(2, facecolor='w')
-    c1 = [ x[0] for x in portfolios ]
-    c2 = [ x[0] + x[1] for x in portfolios ]
-    c3 = [ x[0] + x[1] + x[2] for x in portfolios ]
-    c4 = [ x[0] + x[1] + x[2] + x[3] for x in portfolios ]
-    pylab.fill(risks + [.20], c1 + [0.0], '#F0F0F0')
-    pylab.fill(risks[-1::-1] + risks, c2[-1::-1] + c1, facecolor = '#D0D0D0')
-    pylab.fill(risks[-1::-1] + risks, c3[-1::-1] + c2, facecolor = '#F0F0F0')
-    pylab.fill(risks[-1::-1] + risks, c4[-1::-1] + c3, facecolor = '#D0D0D0')
-    pylab.axis([0.0, 0.2, 0.0, 1.0])
-    pylab.xlabel('standard deviation')
-    pylab.ylabel('allocation')
-    pylab.text(.15,.5,'x1')
-    pylab.text(.10,.7,'x2')
-    pylab.text(.05,.7,'x3')
-    pylab.text(.01,.7,'x4')
-    pylab.title('Optimal allocations (fig 4.12)')
-    pylab.show()
+    for line in codecs.open(input_path, 'r', 'utf-8'):
+        # ,でスプリット
+        # [0]：EachMovie ItemID
+        # [1]：MovieLens ItemID
+        # [2]：EachMovie ItemIDの被評価回数
+        # [3]：MovieLens ItemIDの被評価回数
+        # [3]について降順に並べている
+        line_split = line.split(",")
+        insert_sql = "insert into MatchIdTop100 (EM_ItemID, ML_ItemID, EM_Count, ML_Count) values (?, ?, ?, ?)"
+        insert_data = (line_split[0], line_split[1], line_split[2], line_split[3].rstrip("\n"))
+        c.execute(insert_sql, insert_data)
+        index = index + 1

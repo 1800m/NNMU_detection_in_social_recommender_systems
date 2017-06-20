@@ -4,6 +4,7 @@
 import sqlite3
 import codecs
 import sys
+import linecache
 
 """
 実験1
@@ -14,7 +15,32 @@ def getResultSummarizationExp1(input_path,N):
     # result = list()
     index = 0
     count = 0
+
+    # 各テストセットの値格納用
+    sum0_NF = list()
+    sum1_NF = list()
+    sum2_NF = list()
+    sum3_NF = list()
+    sum4_NF = list()
+    sum5_NF = list()
+    sum6_NF = list()
+    sum7_NF = list()
+    sum8_NF = list()
+    sum9_NF = list()
+
+    sum0_NNMU = list()
+    sum1_NNMU = list()
+    sum2_NNMU = list()
+    sum3_NNMU = list()
+    sum4_NNMU = list()
+    sum5_NNMU = list()
+    sum6_NNMU = list()
+    sum7_NNMU = list()
+    sum8_NNMU = list()
+    sum9_NNMU = list()
+
     sum_list = list()
+
     for count in range(10):
         TP = 0
         tempResult = list()
@@ -31,6 +57,30 @@ def getResultSummarizationExp1(input_path,N):
     output_path = input_path+"result_summarization.csv"
     for i in range(len(sum_list[0])):
         out_data = str(sum_list[0][i][1])+","+str(sum_list[1][i][1])+","+str(sum_list[2][i][1])+","+str(sum_list[3][i][1])+","+str(sum_list[4][i][1])+","+str(sum_list[5][i][1])+","+str(sum_list[6][i][1])+","+str(sum_list[7][i][1])+","+str(sum_list[8][i][1])+","+str(sum_list[9][i][1])
+
+        if i < 400:
+            sum0_NF.insert(i,float(sum_list[0][i][1]))
+            sum1_NF.insert(i,float(sum_list[1][i][1]))
+            sum2_NF.insert(i,float(sum_list[2][i][1]))
+            sum3_NF.insert(i,float(sum_list[3][i][1]))
+            sum4_NF.insert(i,float(sum_list[4][i][1]))
+            sum5_NF.insert(i,float(sum_list[5][i][1]))
+            sum6_NF.insert(i,float(sum_list[6][i][1]))
+            sum7_NF.insert(i,float(sum_list[7][i][1]))
+            sum8_NF.insert(i,float(sum_list[8][i][1]))
+            sum9_NF.insert(i,float(sum_list[9][i][1]))
+        else:
+            sum0_NNMU.insert(i,float(sum_list[0][i][1]))
+            sum1_NNMU.insert(i,float(sum_list[1][i][1]))
+            sum2_NNMU.insert(i,float(sum_list[2][i][1]))
+            sum3_NNMU.insert(i,float(sum_list[3][i][1]))
+            sum4_NNMU.insert(i,float(sum_list[4][i][1]))
+            sum5_NNMU.insert(i,float(sum_list[5][i][1]))
+            sum6_NNMU.insert(i,float(sum_list[6][i][1]))
+            sum7_NNMU.insert(i,float(sum_list[7][i][1]))
+            sum8_NNMU.insert(i,float(sum_list[8][i][1]))
+            sum9_NNMU.insert(i,float(sum_list[9][i][1]))
+
         if(i == 0): # 1行目書き込み
             f = open(output_path, "w")
             i += 1
@@ -42,10 +92,10 @@ def getResultSummarizationExp1(input_path,N):
     out_data = ",,,,,,,,,"
     f = open(output_path, "a")
     print(out_data, end="\n", file=f)
-    out_data = "=AVERAGE(A1:A400),=AVERAGE(B1:B400),=AVERAGE(C1:C400),=AVERAGE(D1:D400),=AVERAGE(E1:E400),=AVERAGE(F1:F400),=AVERAGE(G1:G400),=AVERAGE(H1:H400),=AVERAGE(I1:I400),=AVERAGE(J1:J400)"
+    out_data = str(sum(sum0_NF)/len(sum0_NF))+","+str(sum(sum1_NF)/len(sum1_NF))+","+str(sum(sum2_NF)/len(sum2_NF))+","+str(sum(sum3_NF)/len(sum3_NF))+","+str(sum(sum4_NF)/len(sum4_NF))+","+str(sum(sum5_NF)/len(sum5_NF))+","+str(sum(sum6_NF)/len(sum6_NF))+","+str(sum(sum7_NF)/len(sum7_NF))+","+str(sum(sum8_NF)/len(sum8_NF))+","+str(sum(sum9_NF)/len(sum9_NF))
     f = open(output_path, "a")
     print(out_data, end="\n", file=f)
-    out_data = "=AVERAGE(A401:A500),=AVERAGE(B401:B500),=AVERAGE(C401:C500),=AVERAGE(D401:D500),=AVERAGE(E401:E500),=AVERAGE(F401:F500),=AVERAGE(G401:G500),=AVERAGE(H401:H500),=AVERAGE(I401:I500),=AVERAGE(J401:J500)"
+    out_data = str(sum(sum0_NNMU)/len(sum0_NNMU))+","+str(sum(sum1_NNMU)/len(sum1_NNMU))+","+str(sum(sum2_NNMU)/len(sum2_NNMU))+","+str(sum(sum3_NNMU)/len(sum3_NNMU))+","+str(sum(sum4_NNMU)/len(sum4_NNMU))+","+str(sum(sum5_NNMU)/len(sum5_NNMU))+","+str(sum(sum6_NNMU)/len(sum6_NNMU))+","+str(sum(sum7_NNMU)/len(sum7_NNMU))+","+str(sum(sum8_NNMU)/len(sum8_NNMU))+","+str(sum(sum9_NNMU)/len(sum9_NNMU))
     f = open(output_path, "a")
     print(out_data, end="\n", file=f)
 
@@ -53,11 +103,15 @@ def getResultSummarizationExp1(input_path,N):
     f = open(output_path, "a")
     print(out_data, end="\n", file=f)
 
-    out_data = "Noise-Free average,=AVERAGE(A1:J400),,,,,,,,"
+    sum_all = sum(sum0_NF)+sum(sum1_NF)+sum(sum2_NF)+sum(sum3_NF)+sum(sum4_NF)+sum(sum5_NF)+sum(sum6_NF)+sum(sum7_NF)+sum(sum8_NF)+sum(sum9_NF)
+    sum_len_all = len(sum0_NF)*10
+    out_data = "Noise-Free average,"+str(sum_all/sum_len_all)+",,,,,,,,"
     f = open(output_path, "a")
     print(out_data, end="\n", file=f)
 
-    out_data = "NNMU average,=AVERAGE(A401:J500),,,,,,,,"
+    sum_all = sum(sum0_NNMU)+sum(sum1_NNMU)+sum(sum2_NNMU)+sum(sum3_NNMU)+sum(sum4_NNMU)+sum(sum5_NNMU)+sum(sum6_NNMU)+sum(sum7_NNMU)+sum(sum8_NNMU)+sum(sum9_NNMU)
+    sum_len_all = len(sum0_NNMU)*10
+    out_data = "NNMU average,"+str(sum_all/sum_len_all)+",,,,,,,,"
     f = open(output_path, "a")
     print(out_data, end="\n", file=f)
 
@@ -96,56 +150,172 @@ def getResultExp1(input_path, N):
         # 降順のTop100を調べる→tempResult[i][0]：元のIndexが400番以上か比較→閾値以上か比較→検出
         for i in range(N):
             if int(tempResult[i][0]) >= 400:
-                # TP = TP + 1
-                if float(tempResult[i][1]) > 0.3:
-                    TP = TP + 1
-        TPlist.insert(count, TP)
+                TP = TP + 1
+                # if float(tempResult[i][1]) > 0.3:
+                #     TP = TP + 1
+        TPlist.insert(count, (TP/N)*100)
 
     return TPlist
 
+"""
+各result_summarization.csvを読み込み，平均値を返す
+"""
+def readResultSummarization(input_path):
+    target_line = linecache.getline(input_path, 505).split(",")  # NF average
+    NFave = target_line[1]
+
+    target_line = linecache.getline(input_path, 506).split(",")  # NNMU average
+    NNMUave = target_line[1]
+    linecache.clearcache()
+
+    # 確認用
+    # print(NFave)
+    # print(NNMUave)
+
+    return (NFave,NNMUave)
+
+
+"""
+結果を1つの表にまとめる
+"""
+def generateResultTable(EM_NF, EM_NNMU, ML_NF, ML_NNMU, EM_prec, ML_prec):
+    output_path = "../data/exp1/result_evaluation.csv"
+    # print(EM_NF)
+    # print(EM_NNMU)
+    # print(ML_NF)
+    # print(ML_NNMU)
+    # print(EM_prec)
+    # print(ML_prec)
+
+    # out_data = ",,,,,"
+    for i in range(9):
+        if(i == 0): # 1行目書き込み
+            f = open(output_path, "w")
+            out_data = "noise average,,,intersection,,"
+            print(out_data, end="\n", file=f)
+        elif i == 1:       # 2行目の追記
+            f = open(output_path, "a")
+            out_data = ",,150,200,300,average"
+            print(out_data, end="\n", file=f)
+        elif i == 2:       # 3行目の追記
+            f = open(output_path, "a")
+            out_data = ",Noise-Free,"+str(EM_NF[0])+","+str(EM_NF[1])+","+str(EM_NF[2])+","+str((float(EM_NF[0])+float(EM_NF[1])+float(EM_NF[2]))/len(EM_NF))
+            print(out_data, end="\n", file=f)
+        elif i == 3:       # 4行目の追記
+            f = open(output_path, "a")
+            out_data = "EM,NNMU,"+str(EM_NNMU[0])+","+str(EM_NNMU[1])+","+str(EM_NNMU[2])+","+str((float(ML_NF[0])+float(ML_NF[1])+float(ML_NF[2]))/len(EM_NF))
+            print(out_data, end="\n", file=f)
+        elif i == 4:
+            f = open(output_path, "a")
+            out_data = ",,,,,"
+            print(out_data, end="\n", file=f)
+        elif i == 5:
+            f = open(output_path, "a")
+            out_data = "threshold,0.3,,,,"
+            print(out_data, end="\n", file=f)
+        elif i == 6:
+            f = open(output_path, "a")
+            out_data = "Prec@n,100% Noisy Rating,,intersection,,"
+            print(out_data, end="\n", file=f)
+        elif i == 7:
+            f = open(output_path, "a")
+            out_data = ",,150,200,300,"
+            print(out_data, end="\n", file=f)
+        else:
+            f = open(output_path, "a")
+            index = 0
+            for j in range(4):
+                if j == 0:
+                    out_data = "EachMovie,Prec@10,"+str(EM_prec[index])+","+str(EM_prec[index+1])+","+str(EM_prec[index+2])+","
+                    print(out_data, end="\n", file=f)
+                    index = index + 1
+                elif j == 1:
+                    out_data = ",Prec@20,"+str(EM_prec[index])+","+str(EM_prec[index+1])+","+str(EM_prec[index+2])+","
+                    print(out_data, end="\n", file=f)
+                    index = index + 1
+                elif j == 2:
+                    out_data = ",Prec@50,"+str(EM_prec[index])+","+str(EM_prec[index+1])+","+str(EM_prec[index+2])+","
+                    print(out_data, end="\n", file=f)
+                    index = index + 1
+                else:
+                    out_data = ",Prec@100,"+str(EM_prec[index])+","+str(EM_prec[index+1])+","+str(EM_prec[index+2])+","
+                    print(out_data, end="\n", file=f)
+
+            index = 0
+            for j in range(4):
+                if j == 0:
+                    out_data = "EachMovie,Prec@10,"+str(ML_prec[index])+","+str(ML_prec[index+1])+","+str(ML_prec[index+2])+","
+                    print(out_data, end="\n", file=f)
+                    index = index + 1
+                elif j == 1:
+                    out_data = ",Prec@20,"+str(ML_prec[index])+","+str(ML_prec[index+1])+","+str(ML_prec[index+2])+","
+                    print(out_data, end="\n", file=f)
+                    index = index + 1
+                elif j == 2:
+                    out_data = ",Prec@50,"+str(ML_prec[index])+","+str(ML_prec[index+1])+","+str(ML_prec[index+2])+","
+                    print(out_data, end="\n", file=f)
+                    index = index + 1
+                else:
+                    out_data = ",Prec@100,"+str(ML_prec[index])+","+str(ML_prec[index+1])+","+str(ML_prec[index+2])+","
+                    print(out_data, end="\n", file=f)
 
 
 
 if __name__ == "__main__":
-    args = sys.argv # 10 20 50 100
+    EM_NF = list()
+    EM_NNMU = list()
+    ML_NF = list()
+    ML_NNMU = list()
+    EM_prec = list()
+    ML_prec = list()
 
-    getResultSummarizationExp1("../data/exp1/result_EM_150/",150)
-    getResultSummarizationExp1("../data/exp1/result_EM_200/",200)
-    getResultSummarizationExp1("../data/exp1/result_EM_300/",300)
-    getResultSummarizationExp1("../data/exp1/result_ML_150/",150)
-    getResultSummarizationExp1("../data/exp1/result_ML_200/",200)
-    getResultSummarizationExp1("../data/exp1/result_ML_300/",300)
+    number = (150,200,300)
+    n = (10,20,50,100)
 
-    for num in range(len(args)-1):
-        N = int(args[num+1])
-        print("top@",N)
-        input_path = "../data/exp1/result_EM_150/test"
-        TPlist = getResultExp1(input_path,N)
-        print("EM150")
-        print(TPlist)
-        aveTP = sum(TPlist)/len(TPlist)
-        print("EM prec@"+str(N)+" = ",aveTP)
 
-        input_path = "../data/exp1/result_ML_150/test"
-        TPlist = getResultExp1(input_path,N)
-        print("ML150")
-        print(TPlist)
-        aveTP = sum(TPlist)/len(TPlist)
-        print("ML prec@"+str(N)+" = ",aveTP)
+    for i in range(len(number)):    # 150, 200, 300
+        getResultSummarizationExp1("../data/exp1/result_EM_"+str(number[i])+"/",number[i])
+        tempNF,tempNNMU = readResultSummarization("../data/exp1/result_EM_"+str(number[i])+"/result_summarization.csv")
+        EM_NF.insert(i,tempNF)
+        EM_NNMU.insert(i,tempNNMU)
 
-        for i in range(2):
-            input_path = "../data/exp1/result_EM_"+str((i+2)*100)+"/test"
+        getResultSummarizationExp1("../data/exp1/result_ML_"+str(number[i])+"/",number[i])
+        tempNF,tempNNMU = readResultSummarization("../data/exp1/result_ML_"+str(number[i])+"/result_summarization.csv")
+        ML_NF.insert(i,tempNF)
+        ML_NNMU.insert(i,tempNNMU)
+
+
+    # prec@nの取得
+    index = 0
+    for i in range(len(n)):
+        N = n[i]    # 10, 20, 50, 100
+        for j in range(len(number)):    # 150, 200, 300
+            # print("n = "+str(n[i]))
+            input_path = "../data/exp1/result_EM_"+str(number[j])+"/test"
             TPlist = getResultExp1(input_path,N)
-            print("EM"+str((i+2)*100))
-            print(TPlist)
+            # print("EM"+str(number[j]))
+            # print(TPlist)
             aveTP = sum(TPlist)/len(TPlist)
-            print("EM prec@"+str(N)+" = ",aveTP)
+            # print("EM prec@"+str(N)+" = ",aveTP)
+            EM_prec.insert(index, aveTP)
 
-            input_path = "../data/exp1/result_ML_"+str((i+2)*100)+"/test"
+            input_path = "../data/exp1/result_ML_"+str(number[j])+"/test"
             TPlist = getResultExp1(input_path,N)
-            print("ML"+str((i+2)*100))
-            print(TPlist)
+            # print("ML"+str(number[j]))
+            # print(TPlist)
             aveTP = sum(TPlist)/len(TPlist)
-            print("ML prec@"+str(N)+" = ",aveTP)
+            # print("ML prec@"+str(N)+" = ",aveTP)
+            ML_prec.insert(index, aveTP)
 
-        print("")
+            index = index + 1
+
+    # 結果をまとめる
+    generateResultTable(EM_NF, EM_NNMU, ML_NF, ML_NNMU, EM_prec, ML_prec)
+
+    # 確認用
+    # print(EM_NF)
+    # print(EM_NNMU)
+    # print(ML_NF)
+    # print(ML_NNMU)
+    # print(EM_prec)
+    # print(ML_prec)
