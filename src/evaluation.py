@@ -150,9 +150,9 @@ def getResultExp1(input_path, N):
         # 降順のTop100を調べる→tempResult[i][0]：元のIndexが400番以上か比較→閾値以上か比較→検出
         for i in range(N):
             if int(tempResult[i][0]) >= 400:
-                TP = TP + 1
-                # if float(tempResult[i][1]) > 0.3:
-                #     TP = TP + 1
+                # TP = TP + 1
+                if float(tempResult[i][1]) > 0.3:
+                    TP = TP + 1
         TPlist.insert(count, (TP/N)*100)
 
     return TPlist
@@ -188,7 +188,7 @@ def generateResultTable(EM_NF, EM_NNMU, ML_NF, ML_NNMU, EM_prec, ML_prec):
     # print(ML_prec)
 
     # out_data = ",,,,,"
-    for i in range(9):
+    for i in range(11):
         if(i == 0): # 1行目書き込み
             f = open(output_path, "w")
             out_data = "noise average,,,intersection,,"
@@ -199,25 +199,33 @@ def generateResultTable(EM_NF, EM_NNMU, ML_NF, ML_NNMU, EM_prec, ML_prec):
             print(out_data, end="\n", file=f)
         elif i == 2:       # 3行目の追記
             f = open(output_path, "a")
-            out_data = ",Noise-Free,"+str(EM_NF[0])+","+str(EM_NF[1])+","+str(EM_NF[2])+","+str((float(EM_NF[0])+float(EM_NF[1])+float(EM_NF[2]))/len(EM_NF))
+            out_data = "EachMovie,Noise-Free,"+str(EM_NF[0])+","+str(EM_NF[1])+","+str(EM_NF[2])+","+str((float(EM_NF[0])+float(EM_NF[1])+float(EM_NF[2]))/len(EM_NF))
             print(out_data, end="\n", file=f)
         elif i == 3:       # 4行目の追記
             f = open(output_path, "a")
-            out_data = "EM,NNMU,"+str(EM_NNMU[0])+","+str(EM_NNMU[1])+","+str(EM_NNMU[2])+","+str((float(ML_NF[0])+float(ML_NF[1])+float(ML_NF[2]))/len(EM_NF))
+            out_data = ",NNMU,"+str(EM_NNMU[0])+","+str(EM_NNMU[1])+","+str(EM_NNMU[2])+","+str((float(EM_NNMU[0])+float(EM_NNMU[1])+float(EM_NNMU[2]))/len(EM_NNMU))
             print(out_data, end="\n", file=f)
-        elif i == 4:
+        elif i == 4:       # 5行目の追記
             f = open(output_path, "a")
-            out_data = ",,,,,"
+            out_data = "MovieLens,Noise-Free,"+str(ML_NF[0])+","+str(ML_NF[1])+","+str(ML_NF[2])+","+str((float(ML_NF[0])+float(ML_NF[1])+float(ML_NF[2]))/len(ML_NF))
             print(out_data, end="\n", file=f)
-        elif i == 5:
+        elif i == 5:       # 6行目の追記
             f = open(output_path, "a")
-            out_data = "threshold,0.3,,,,"
+            out_data = ",NNMU,"+str(ML_NNMU[0])+","+str(ML_NNMU[1])+","+str(ML_NNMU[2])+","+str((float(ML_NNMU[0])+float(ML_NNMU[1])+float(ML_NNMU[2]))/len(ML_NNMU))
             print(out_data, end="\n", file=f)
         elif i == 6:
             f = open(output_path, "a")
-            out_data = "Prec@n,100% Noisy Rating,,intersection,,"
+            out_data = ",,,,,"
             print(out_data, end="\n", file=f)
         elif i == 7:
+            f = open(output_path, "a")
+            out_data = "threshold,0.3,,,,"
+            print(out_data, end="\n", file=f)
+        elif i == 8:
+            f = open(output_path, "a")
+            out_data = "Prec@n,100% Noisy Rating,,intersection,,"
+            print(out_data, end="\n", file=f)
+        elif i == 9:
             f = open(output_path, "a")
             out_data = ",,150,200,300,"
             print(out_data, end="\n", file=f)
